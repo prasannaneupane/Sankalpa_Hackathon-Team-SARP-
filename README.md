@@ -11,10 +11,10 @@
 
 | Name      | Role / Ownership        | Contact         |
 | --------- | ----------------------- | --------------- |
-| Aayushya Shrestha | e.g., Product / Backend | @handle / email |
-| Prasanna Neupane | e.g., Frontend / UX     | @handle / email |
-| Rojan Neupane | e.g., Frontend / UX     | @handle / email |
-| Sujal Shrestha | e.g., Frontend / UX     | @handle / email |
+| Aayushya Shrestha | e.g., Product / Backend | sthaayu333@gmail.com |
+| Prasanna Neupane | e.g., Frontend / UX     | neupaneprasanna85@gmail.com |
+| Rojan Neupane | e.g., Frontend / UX     | rozen09@icloud.com |
+| Sujal Shrestha | e.g., Frontend / UX     | sujalst10@gmail.com |
 
 - Team name: SARP
 - Judge-ready intros: who built what.
