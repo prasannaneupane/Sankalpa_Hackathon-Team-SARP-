@@ -1,23 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    const storedUser = JSON.parse(localStorage.getItem("registeredUser"));
+  const handleRegister = () => {
+    if (!username || !password) {
+      alert("Please fill all fields");
+      return;
+    }
 
+    const userData = { username, password };
 
-      localStorage.setItem("role", "citizen");
-      localStorage.setItem("user", username);
-      navigate("/dashboard");
-  }
+    localStorage.setItem("registeredUser", JSON.stringify(userData));
+
+    alert("Registration successful!");
+    navigate("/login");
+  };
 
   return (
     <div style={styles.container}>
-      <h1>Login</h1>
+      <h1>Register</h1>
 
       <input
         type="text"
@@ -34,9 +41,16 @@ export default function Login() {
         onChange={(e) => setPassword(e.target.value)}
         style={styles.input}
       />
+        <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={styles.input}
+      />
 
-      <button onClick={handleLogin} style={styles.button}>
-        Login
+      <button onClick={handleRegister} style={styles.button}>
+        Register
       </button>
     </div>
   );
