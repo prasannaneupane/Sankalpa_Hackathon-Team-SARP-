@@ -1,4 +1,4 @@
-﻿# Project Title (update me)
+﻿# 
 
 > One-sentence tagline that states the user outcome, not the tech.
 
@@ -11,10 +11,12 @@
 
 | Name      | Role / Ownership        | Contact         |
 | --------- | ----------------------- | --------------- |
-| YOUR NAME | e.g., Product / Backend | @handle / email |
-| YOUR NAME | e.g., Frontend / UX     | @handle / email |
+| Aayushya Shrestha | e.g., Product / Backend | @handle / email |
+| Prasanna Neupane | e.g., Frontend / UX     | @handle / email |
+| Rojan Neupane | e.g., Frontend / UX     | @handle / email |
+| Sujal Shrestha | e.g., Frontend / UX     | @handle / email |
 
-- Team name: add it here.
+- Team name: SARP
 - Judge-ready intros: who built what.
 
 ## Problem & Users
