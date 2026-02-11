@@ -7,8 +7,8 @@ const { authenticate, authorizeRole } = require('../middleware/authMiddleware');
 router.use(authenticate, authorizeRole('admin'));
 
 router.get('/analytics', adminController.getCityStats);
-router.get('/heatmap', adminController.getHeatmapData);
+//router.get('/heatmap', adminController.getHeatmapData);
 router.patch('/zones/:id/weight', adminController.updateZonePriority);
-router.delete('/issues/:id', adminController.deleteSpamIssue);
+//router.delete('/issues/:id', adminController.deleteSpamIssue);
 
 module.exports = router;
