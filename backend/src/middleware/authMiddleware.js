@@ -1,10 +1,13 @@
 const supabase = require('../config/db');
 
 /**
- * 1. authenticate: Validates the Supabase JWT
+ * Main Authentication Middleware
+ * 1. Verifies the Supabase JWT.
+ * 2. Fetches the role from the 'profiles' table.
+ * 3. Attaches everything to req.user.
  */
 const authenticate = async (req, res, next) => {
-    // Get token from the Authorization header (Format: Bearer <token>)
+    // Get token from Authorization header: Bearer <token>
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -13,15 +16,32 @@ const authenticate = async (req, res, next) => {
     }
 
     try {
-        // Ask Supabase to verify this token
-        const { data: { user }, error } = await supabase.auth.getUser(token);
+        // 1. Verify token with Supabase
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-        if (error || !user) {
+        if (authError || !user) {
             return res.status(401).json({ message: 'Invalid or expired token' });
         }
 
-        // Attach the user object to the request so controllers can use req.user.id
-        req.user = user;
+        // 2. Fetch role from the profiles table
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role, full_name')
+            .eq('id', user.id)
+            .single();
+
+        if (profileError || !profile) {
+            return res.status(403).json({ message: 'User profile not found' });
+        }
+
+        // 3. Attach user data + role to the request
+        req.user = {
+            id: user.id,
+            email: user.email,
+            role: profile.role,
+            full_name: profile.full_name
+        };
+
         next();
     } catch (err) {
         return res.status(500).json({ message: 'Internal Server Auth Error' });
@@ -29,33 +49,17 @@ const authenticate = async (req, res, next) => {
 };
 
 /**
- * 2. authorizeRole: Restricts access based on the "role" column in your profiles table
+ * Role-Specific Authorization
+ * Use this to restrict specific routes to 'admin' or 'ambulance' only.
  */
 const authorizeRole = (allowedRole) => {
-    return async (req, res, next) => {
-        try {
-            // Since roles are in our custom 'profiles' table, we fetch it using the user ID
-            const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', req.user.id)
-                .single();
-
-            if (error || !profile) {
-                return res.status(403).json({ message: 'User profile not found' });
-            }
-
-            if (profile.role !== allowedRole) {
-                return res.status(403).json({ 
-                    message: `Forbidden: This action requires the ${allowedRole} role.` 
-                });
-            }
-
-            // User is authenticated AND has the right role
-            next();
-        } catch (err) {
-            return res.status(500).json({ message: 'Role authorization error' });
+    return (req, res, next) => {
+        if (!req.user || req.user.role !== allowedRole) {
+            return res.status(403).json({ 
+                message: `Forbidden: This action requires the ${allowedRole} role.` 
+            });
         }
+        next();
     };
 };
 
