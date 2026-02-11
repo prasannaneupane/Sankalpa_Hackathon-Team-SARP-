@@ -1,50 +1,26 @@
 const supabase = require('../config/db');
 
-/**
- * Main Authentication Middleware
- * 1. Verifies the Supabase JWT.
- * 2. Fetches the role from the 'profiles' table.
- * 3. Attaches everything to req.user.
- */
-const authenticate = async (req, res, next) => {
-    // Get token from Authorization header: Bearer <token>
+const jwt = require('jsonwebtoken');
+
+const authenticate = (req, res, next) => {
+    // 1. Get token from header (Authorization: Bearer <token>)
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({ message: 'Authentication token required' });
+        return res.status(401).json({ message: "No token provided. Access denied." });
     }
 
     try {
-        // 1. Verify token with Supabase
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-
-        if (authError || !user) {
-            return res.status(401).json({ message: 'Invalid or expired token' });
-        }
-
-        // 2. Fetch role from the profiles table
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('role, full_name')
-            .eq('id', user.id)
-            .single();
-
-        if (profileError || !profile) {
-            return res.status(403).json({ message: 'User profile not found' });
-        }
-
-        // 3. Attach user data + role to the request
-        req.user = {
-            id: user.id,
-            email: user.email,
-            role: profile.role,
-            full_name: profile.full_name
-        };
-
+        // 2. Verify the token using your secret
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // 3. Attach the payload (id, role) to the request object
+        req.user = decoded; 
+        
         next();
     } catch (err) {
-        return res.status(500).json({ message: 'Internal Server Auth Error' });
+        return res.status(403).json({ message: "Invalid or expired token." });
     }
 };
 

@@ -1,37 +1,25 @@
-// const express = require('express');
-// const router = express.Router();
-// const issueController = require('../controllers/issueController');
-// const { authenticate, authorizeRole } = require('../middleware/authMiddleware');
-
-// // Public: Everyone can see the map and specific pothole details
-// router.get('/active', issueController.getActiveIssues);
-// //router.get('/:id', issueController.getIssueDetails);
-
-// // Protected: Only logged-in citizens can report or vote
-// router.post('/report', authenticate, authorizeRole('citizen'), issueController.reportPothole);
-// //router.post('/:id/vote', authenticate, authorizeRole('citizen'), issueController.castVote);
-
-// module.exports = router;
-
 const express = require('express');
 const router = express.Router();
 const issueController = require('../controllers/issueController');
 const { authenticate, authorizeRole } = require('../middleware/authMiddleware');
 
-// Public: Everyone can see the map and specific pothole details
-router.get('/active', issueController.getActiveIssues);
-router.get('/nearby/:lat/:lng', issueController.getNearbyIssues); // Specific route BEFORE generic /:id
-router.get('/:id', issueController.getIssueDetails);
-router.get('/:id/status', issueController.getIssueStatus);
-router.get('/:id/weight', issueController.getIssueWeight);
-router.get('/:id/ambulance', issueController.getAmbulanceId);
+// --- DASHBOARDS ---
+// For Admins/Authorities to see high-level stats
+router.get('/dashboard', authenticate, authorizeRole('admin', 'authority'), issueController.getDashboard);
 
-// Protected: Only logged-in citizens can report or vote
+// For Citizens/Ambulances to see the list/map
+router.get('/', authenticate, issueController.getAllIssues);
+router.get('/check-nearby', authenticate, issueController.checkNearby);
+
+// --- DETAILS ---
+router.get('/:id', authenticate, issueController.getIssueDetails);
+
+// --- CITIZEN ACTIONS ---
 router.post('/report', authenticate, authorizeRole('citizen'), issueController.reportPothole);
 router.post('/:id/vote', authenticate, authorizeRole('citizen'), issueController.castVote);
 
-// Update routes (admin/authority only)
-router.put('/:id/status', authenticate, authorizeRole('authority', 'admin'), issueController.updateIssueStatus);
-router.put('/:id/weight', authenticate, authorizeRole('authority', 'admin'), issueController.updateIssueWeight);
+// --- AMBULANCE ACTIONS ---
+router.put('/:id/claim', authenticate, authorizeRole('ambulance'), issueController.claimIssue);
+router.put('/:id/resolve', authenticate, authorizeRole('ambulance'), issueController.resolveIssue);
 
 module.exports = router;
