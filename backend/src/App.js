@@ -1,25 +1,25 @@
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-require('dotenv').config();
-
 const app = express();
 
-// Middlewares
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Import Route Files
+const authRoutes = require('./routes/authRoutes');
+const issueRoutes = require('./routes/issueRoutes');
+const ambulanceRoutes = require('./routes/ambulanceRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
-// Basic Health Check Route
-app.get('/', (req, res) => {
-  res.status(200).json({ message: "Pothole Ambulance API is live! 🚑" });
-});
+// Global Middlewares
+app.use(express.json()); // Parses incoming JSON requests
 
-// Future Routes will be imported here:
-// const issueRoutes = require('./routes/issueRoutes');
-// app.use('/api/issues', issueRoutes);
+// Mounting Routes to URL Paths
+app.use('/api/auth', authRoutes);
+app.use('/api/issues', issueRoutes);
+app.use('/api/ambulance', ambulanceRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/feedback', feedbackRoutes);
+
+// 404 Handler for undefined routes
+app.use((req, res) => res.status(404).json({ message: "Route not found" }));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Pothole Ambulance API running on port ${PORT}`));
