@@ -9,7 +9,7 @@ export default function CitizenDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [userVotes, setUserVotes] = useState({}); // Store user's votes from backend
+  const [userVotes, setUserVotes] = useState({});
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -37,7 +37,7 @@ export default function CitizenDashboard() {
   // Fetch user's votes from backend
   const fetchUserVotes = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/votes/my-votes`, {
+      const response = await fetch(`${API_BASE_URL}/issues/votes/my-votes`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -45,7 +45,6 @@ export default function CitizenDashboard() {
       
       if (response.ok) {
         const votes = await response.json();
-        // Convert to object { issueId: voteValue }
         const voteMap = {};
         votes.forEach(vote => {
           voteMap[vote.issue_id] = vote.vote_value;
@@ -57,7 +56,7 @@ export default function CitizenDashboard() {
     }
   };
 
-  // Fetch issues with pagination - UPDATED to use vote_score
+  // Fetch issues with pagination
   const fetchIssues = async (pageNum = 1, append = false) => {
     try {
       if (pageNum === 1) setLoading(true);
@@ -78,13 +77,15 @@ export default function CitizenDashboard() {
         throw new Error(data.error || "Failed to fetch issues");
       }
 
-      // Merge issues with user votes
+      // Merge issues with user votes and ensure photos array exists
       const issuesWithVotes = data.map(issue => ({
         ...issue,
         userVote: userVotes[issue.id] || 0,
-        // Ensure vote_score exists
         vote_score: issue.vote_score || 0,
-        total_votes: issue.total_votes || 0
+        total_votes: issue.total_votes || 0,
+        photos: issue.photos || [], // Ensure photos array exists
+        photo_count: issue.photo_count || 0,
+        first_photo: issue.first_photo || null
       }));
 
       if (append) {
@@ -142,21 +143,18 @@ export default function CitizenDashboard() {
     return () => observer.disconnect();
   }, [loading, hasMore, page, refreshing]);
 
-  // Handle vote - UPDATED to use vote_score
+  // Handle vote
   const handleVote = async (issueId, voteValue) => {
     try {
       const previousVote = userVotes[issueId] || 0;
 
-      // If same vote, do nothing
       if (previousVote === voteValue) {
         showSnackbar("You've already voted this way", "info");
         return;
       }
 
-      // Calculate the vote difference
       let voteDifference = voteValue;
       if (previousVote !== 0) {
-        // Remove previous vote first, then add new vote
         voteDifference = voteValue - previousVote;
       }
 
@@ -174,13 +172,11 @@ export default function CitizenDashboard() {
         })
       );
 
-      // Update local userVotes state
       setUserVotes(prev => ({
         ...prev,
         [issueId]: voteValue
       }));
 
-      // Send to backend
       const response = await fetch(`${API_BASE_URL}/issues/${issueId}/vote`, {
         method: "POST",
         headers: {
@@ -193,7 +189,6 @@ export default function CitizenDashboard() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Revert on error
         throw new Error(data.error || "Failed to cast vote");
       }
 
@@ -206,7 +201,6 @@ export default function CitizenDashboard() {
       console.error("Vote error:", err);
       showSnackbar(`❌ ${err.message}`, "error");
       
-      // Revert optimistic update by refetching
       fetchUserVotes();
       fetchIssues(1, false);
     }
@@ -250,6 +244,10 @@ export default function CitizenDashboard() {
     return date.toLocaleDateString();
   };
 
+  const openImage = (photoUrl) => {
+    window.open(photoUrl, '_blank');
+  };
+
   return (
     <div className="citizen-dashboard">
       <Navbar loggedIn={true} />
@@ -288,7 +286,7 @@ export default function CitizenDashboard() {
           <h2 className="section-title">📋 Live Issues Feed</h2>
           <button 
             className="report-button"
-            onClick={() => navigate("/report-issue")}
+            onClick={() => navigate("/report")}
           >
             + Report New Issue
           </button>
@@ -328,9 +326,49 @@ export default function CitizenDashboard() {
                     </div>
 
                     <div className="issue-body">
+                      {/* Photo Gallery - Fixed with no external dependencies */}
+                      {issue.photos && issue.photos.length > 0 ? (
+                        <div className="issue-photos">
+                          <div className="photo-gallery">
+                            {issue.photos.slice(0, 4).map((photo, photoIndex) => (
+                              <div 
+                                key={photoIndex} 
+                                className="photo-thumbnail"
+                                onClick={() => openImage(photo)}
+                              >
+                                <img 
+                                  src={photo} 
+                                  alt={`Issue ${issue.id.substring(0, 6)}`} 
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    // Hide broken image and show CSS fallback
+                                    e.target.style.display = 'none';
+                                    e.target.parentElement.classList.add('broken-image');
+                                  }}
+                                />
+                              </div>
+                            ))}
+                            {issue.photos.length > 4 && (
+                              <div className="photo-more" onClick={() => openImage(issue.photos[4])}>
+                                +{issue.photos.length - 4}
+                              </div>
+                            )}
+                          </div>
+                          <span className="photo-count">
+                            📸 {issue.photo_count || issue.photos.length} photo{issue.photos.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="no-photo-placeholder">
+                          <span className="no-photo-icon">📷</span>
+                          <span className="no-photo-text">No photo uploaded</span>
+                        </div>
+                      )}
+
                       <p className="issue-description">
                         {issue.description || "No description provided"}
                       </p>
+                      
                       {issue.location && (
                         <div className="issue-location">
                           📍 {typeof issue.location === 'string' 
@@ -370,14 +408,6 @@ export default function CitizenDashboard() {
                         </div>
                       )}
                     </div>
-
-                    {issue.sub_reports && issue.sub_reports.length > 0 && (
-                      <div className="sub-reports">
-                        <span className="sub-reports-count">
-                          📸 {issue.sub_reports.length} photo{issue.sub_reports.length > 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 );
               })}

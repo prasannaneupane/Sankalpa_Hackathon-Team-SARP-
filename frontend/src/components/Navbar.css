@@ -20,9 +20,12 @@
 }
 
 .navbar-logo {
-  font-size: 28px;
+  height: 45px;        /* Fixed height */
+  width: auto;         /* Auto width maintains aspect ratio */
+  max-width: 160px;    /* Maximum width */
+  object-fit: contain; /* Prevents distortion */
+  border-radius: 6px;  /* Slightly rounded corners for rectangle */
 }
-
 .navbar-title {
   margin: 0;
   font-size: 22px;

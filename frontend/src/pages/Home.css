@@ -15,6 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+   border-radius: 20px;
 }
 
 .hero-overlay {
@@ -23,7 +24,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(220, 20, 60, 0.8);
+  background-color: #a6b1e1;
+  border-radius: 20px;
 }
 
 .hero-content {
@@ -32,6 +34,7 @@
   text-align: center;
   color: #fff;
   padding: 20px;
+ 
 }
 
 .hero-title {
@@ -58,7 +61,7 @@
 .primary-button {
   padding: 15px 30px;
   background-color: #fff;
-  color: #DC143C;
+  color:#a6b1e1;
   border: none;
   border-radius: 8px;
   font-size: 16px;
@@ -103,7 +106,7 @@
 
 .about-title {
   font-size: 32px;
-  color: #DC143C;
+  color: #a6b1e1;
   margin-bottom: 20px;
 }
 
@@ -204,7 +207,7 @@
 }
 
 .stat-card.delayed {
-  border-top: 4px solid #dc3545;
+  border-top: 4px solid #a6b1e1;
 }
 
 .stat-card.total {
@@ -293,7 +296,7 @@
 }
 
 .status-badge.delayed {
-  background-color: #dc3545;
+  background-color: #a6b1e1;
 }
 
 .status-badge.pending {
@@ -326,7 +329,7 @@
 
 .view-all-button {
   padding: 12px 30px;
-  background-color: #DC143C;
+  background-color: #a6b1e1;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -337,14 +340,20 @@
 }
 
 .view-all-button:hover {
-  background-color: #b01030;
+  background-color: #a6b1e1;
   transform: translateY(-2px);
 }
 
+.hero-logo {
+  height: 80px;
+  width: auto;
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
 /* CTA Section */
 .cta-section {
   padding: 80px 20px;
-  background-color: #DC143C;
+  background-color: #a6b1e1;
   text-align: center;
 }
 
@@ -374,7 +383,7 @@
 .cta-primary-button {
   padding: 15px 30px;
   background-color: #fff;
-  color: #DC143C;
+  color: #a6b1e1;
   border: none;
   border-radius: 8px;
   font-size: 16px;

@@ -29,14 +29,14 @@ export default function Navbar({ loggedIn, toggleAbout }) {
   return (
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate("/")}>
-        <span className="navbar-logo">🚑</span>
+        <img className="navbar-logo" src="../public/logo.png" alt="SADAK SUDHAR Logo" />
         <h2 className="navbar-title">SADAK SUDHAR</h2>
       </div>
 
       <div className="navbar-links">
         {/* --- BACK BUTTON for REPORT PAGE --- */}
         {location.pathname.startsWith("/report") && (
-          <button className="nav-button back" onClick={() => navigate("/dashboard")}>
+          <button className="nav-button back" onClick={() => navigate("/citizen-dashboard")}>
             ← Back
           </button>
         )}
@@ -71,7 +71,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
                 <span className="user-role">{role}</span>
               </div>
             </div>
-            <button className="nav-button" onClick={() => navigate("/dashboard")}>
+            <button className="nav-button" onClick={() => navigate("/citizen-dashboard")}>
               Dashboard
             </button>
             <button className="nav-button primary" onClick={() => navigate("/report")}>
