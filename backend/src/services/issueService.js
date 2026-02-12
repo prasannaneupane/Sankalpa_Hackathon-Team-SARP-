@@ -149,6 +149,9 @@ class IssueServiceClass {
                     new_vote_value: 1 
                 });
                 
+                // ✅ Recalculate weight for the merged issue
+                await this.updateIssueWeight(masterIssueId);
+                
                 if (photo_url) {
                     await supabase.from('sub_reports').insert({ 
                         master_issue_id: masterIssueId, 
@@ -164,6 +167,7 @@ class IssueServiceClass {
                 };
             }
             
+            // Create new issue with default weight 1
             const { data: newIssue, error } = await supabase
                 .from('issues')
                 .insert([{ 
@@ -178,11 +182,15 @@ class IssueServiceClass {
                 
             if (error) throw error;
             
+            // Add creator's vote (upvote)
             await supabase.from('votes').insert({ 
                 user_id: userId, 
                 issue_id: newIssue.id, 
                 vote_value: 1 
             });
+            
+            // ✅ Calculate and set proper weight based on the vote
+            const initialWeight = await this.updateIssueWeight(newIssue.id);
             
             if (photo_url) {
                 await supabase.from('sub_reports').insert({ 
@@ -196,7 +204,10 @@ class IssueServiceClass {
             
             return { 
                 status: 'created', 
-                issue: newIssue 
+                issue: {
+                    ...newIssue,
+                    weight: initialWeight
+                }
             };
             
         } catch (error) {
@@ -204,17 +215,31 @@ class IssueServiceClass {
             throw error;
         }
     }
-
-    // ============ VOTING ============
     
+    // ============ VOTING ============
+
     async castVote(issueId, userId, voteValue) {
-        const { data, error } = await supabase.rpc('cast_secure_vote_v2', { 
-            target_issue_id: issueId, 
-            voting_user_id: userId, 
-            new_vote_value: voteValue 
-        });
-        if (error) throw error;
-        return { result: data };
+        try {
+            // Call the secure vote function
+            const { data, error } = await supabase.rpc('cast_secure_vote_v2', { 
+                target_issue_id: issueId, 
+                voting_user_id: userId, 
+                new_vote_value: voteValue 
+            });
+            
+            if (error) throw error;
+            
+            // ✅ RECALCULATE AND UPDATE WEIGHT AFTER EVERY VOTE
+            const newWeight = await this.updateIssueWeight(issueId);
+            
+            return { 
+                result: data,
+                new_weight: newWeight 
+            };
+        } catch (error) {
+            console.error('❌ castVote error:', error);
+            throw error;
+        }
     }
 
     async getUserVotes(userId) {
@@ -228,7 +253,7 @@ class IssueServiceClass {
     }
 
     // ============ ISSUES WITH VOTES AND PHOTOS ============
-    
+        
     async getIssuesWithScores(filters = {}, page = 1, limit = 10) {
         try {
             const from = (page - 1) * limit;
@@ -399,6 +424,90 @@ class IssueServiceClass {
             return data[0];
         } catch (error) {
             console.error('❌ resolveIssue error:', error);
+            throw error;
+        }
+    }
+
+        // ============ VOTE-BASED PRIORITY CALCULATION ============
+
+    /**
+     * Calculate weight/priority based on vote score
+     * Formula: base 1 + (votes * 0.5) + (time decay factor)
+     * Max weight: 10, Min weight: 1
+     */
+    async calculateIssueWeight(issueId) {
+        try {
+            const { data: issue, error: issueError } = await supabase
+                .from('issues')
+                .select('created_at')
+                .eq('id', issueId)
+                .single();
+                
+            if (issueError) throw issueError;
+            
+            const { data: votes, error: votesError } = await supabase
+                .from('votes')
+                .select('vote_value')
+                .eq('issue_id', issueId);
+                
+            if (votesError) throw votesError;
+            
+            const upvotes = votes.filter(v => v.vote_value === 1).length;
+            const downvotes = votes.filter(v => v.vote_value === -1).length;
+            
+            const createdDate = new Date(issue.created_at);
+            const now = new Date();
+            const ageInHours = (now - createdDate) / (1000 * 60 * 60);
+            
+            // Integer-only calculation (returns 1-10)
+            let weight = 1;
+            
+            // Each 2 upvotes = +1 priority
+            weight += Math.floor(upvotes / 2);
+            
+            // Each 3 downvotes = -1 priority
+            weight -= Math.floor(downvotes / 3);
+            
+            // Time bonus
+            if (ageInHours < 6) weight += 2;
+            else if (ageInHours < 24) weight += 1;
+            else if (ageInHours > 72) weight -= 1;
+            else if (ageInHours > 168) weight -= 2;
+            
+            // Cap between 1-10
+            weight = Math.min(10, Math.max(1, weight));
+            
+            return weight;
+        } catch (error) {
+            console.error('❌ Error calculating weight:', error);
+            return 1;
+        }
+    }
+
+    /**
+     * Update issue weight based on vote score
+     */
+    async updateIssueWeight(issueId) {
+        try {
+            // Calculate the new weight based on votes
+            const newWeight = await this.calculateIssueWeight(issueId);
+            
+            // Update the database
+            const { data, error } = await supabase
+                .from('issues')
+                .update({ 
+                    weight: newWeight,
+                    updated_at: new Date()
+                })
+                .eq('id', issueId)
+                .select();
+                
+            if (error) throw error;
+            
+            console.log(`✅ Updated issue ${issueId} weight to ${newWeight}`);
+            return newWeight;
+        } catch (error) {
+            console.error('❌ Error updating issue weight:', error);
             throw error;
         }
     }
