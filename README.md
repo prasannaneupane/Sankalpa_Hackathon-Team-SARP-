@@ -96,11 +96,11 @@ Sadak Sudhar is a web-based admin dashboard that enables real-time management of
 3. **Run the App**:
    - **Frontend**:
      ```bash
-     npm run dev
+     npm run dev --prefix frontend
      ```
    - **Backend**:
      ```bash
-     npm run dev
+     npm run dev --prefix backend
      ```
 
 4. **Seed Data (if applicable)**:  
@@ -108,7 +108,7 @@ Sadak Sudhar is a web-based admin dashboard that enables real-time management of
 
 5. **App URL**:  
    Access the app locally at:  
-   [http://localhost:3000](http://localhost:3000)
+   [http://localhost:5173](http://localhost:5173)
 
 ## Usage Walkthrough
 
@@ -123,8 +123,6 @@ Sadak Sudhar is a web-based admin dashboard that enables real-time management of
 ## Future Scope
 - **Mobile App**: Extend functionality for mobile users.
 - **Advanced Analytics**: Implement predictive analytics to forecast issue trends.
-- **Citizen App**: Enable direct issue reporting from citizens.
-- **Multilingual Support**: Expand accessibility for international users.
 - **Offline Mode**: Allow for limited functionality even without internet access.
 
 ## Timeline (Hackathon Log)
