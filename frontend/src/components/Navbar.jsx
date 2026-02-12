@@ -30,7 +30,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate("/")}>
         <span className="navbar-logo">🚑</span>
-        <h2 className="navbar-title">TEAM-SARP</h2>
+        <h2 className="navbar-title">SADAK SUDHAR</h2>
       </div>
 
       <div className="navbar-links">
@@ -56,8 +56,8 @@ export default function Navbar({ loggedIn, toggleAbout }) {
             <button className="nav-button outline" onClick={() => navigate("/login")}>
               Login
             </button>
-            <button className="nav-button primary" onClick={() => navigate("/register")}>
-              Register
+            <button className="nav-button primary" onClick={() => navigate("/register_citizen")}>
+              Register as Citizen
             </button>
           </>
         )}

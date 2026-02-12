@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import API_BASE_URL from "../config";
@@ -15,11 +15,24 @@ export default function Home() {
   const [recentIssues, setRecentIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  
+  // Create ref for about section
+  const aboutRef = useRef(null);
 
   useEffect(() => {
     fetchStats();
     fetchRecentIssues();
   }, []);
+
+  // Auto-scroll to about section when showAbout becomes true
+  useEffect(() => {
+    if (showAbout && aboutRef.current) {
+      aboutRef.current.scrollIntoView({ 
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+  }, [showAbout]);
 
   const fetchStats = async () => {
     console.log("Fetching dashboard stats...");
@@ -28,7 +41,6 @@ export default function Home() {
       const data = await response.json();
       console.log("Raw stats data:", data);
       
-      // Check if data has the stats property (backend returns {stats: {...}, hotSpots: [...]})
       if (data && data.stats) {
         setStats({
           completed: data.stats.resolved_count || 0,
@@ -47,7 +59,6 @@ export default function Home() {
       const response = await fetch(`${API_BASE_URL}/issues/dashboard`);
       const data = await response.json();
       
-      // Check if data has hotSpots array
       if (data && Array.isArray(data.hotSpots)) {
         setRecentIssues(data.hotSpots.slice(0, 5));
       }
@@ -84,9 +95,13 @@ export default function Home() {
     }
   };
 
+  const toggleAbout = () => {
+    setShowAbout((prev) => !prev);
+  };
+
   return (
     <div className="home-page">
-      <Navbar loggedIn={false} toggleAbout={() => setShowAbout((prev) => !prev)} />
+      <Navbar loggedIn={false} toggleAbout={toggleAbout} />
 
       {/* Hero Section */}
       <div className="hero">
@@ -96,13 +111,17 @@ export default function Home() {
           <p className="hero-subtitle">
             Report, track, and resolve road issues in your community
           </p>
+          <h2 className="cta-title">Ready to make a difference?</h2>
+          <p className="cta-text">
+            Join our community and help improve road safety in your area.
+          </p>
           <div className="hero-buttons">
             <button className="primary-button" onClick={() => navigate("/login")}>
               Get Started
             </button>
             <button
               className="secondary-button"
-              onClick={() => setShowAbout((prev) => !prev)}
+              onClick={toggleAbout}
             >
               Learn More
             </button>
@@ -111,35 +130,49 @@ export default function Home() {
       </div>
 
       {/* About Section */}
-      {showAbout && (
-        <div className="about-section">
-          <div className="about-card">
-            <h2 className="about-title">About TEAM-SARP</h2>
-            <p className="about-text">
-              TEAM-SARP is a Nepal-based platform designed to empower citizens to report
-              and track community road issues efficiently. Our mission is to create safer
-              roads for everyone by connecting citizens, authorities, and emergency services.
-            </p>
-            <div className="features">
-              <div className="feature-item">
-                <span className="feature-icon">📍</span>
-                <h3 className="feature-title">Report Issues</h3>
-                <p className="feature-text">Easily report potholes with location and photos</p>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">📊</span>
-                <h3 className="feature-title">Track Progress</h3>
-                <p className="feature-text">Monitor the status of reported issues in real-time</p>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">🚑</span>
-                <h3 className="feature-title">Ambulance Alerts</h3>
-                <p className="feature-text">Alert ambulances about road hazards on their route</p>
-              </div>
+      <div ref={aboutRef} className="about-section">
+        <div className="about-card">
+          <h2 className="about-title">About SADAK SUDHAR</h2>
+          <p className="about-subtitle">Nepal's Road Infrastructure Reporting Platform</p>
+          
+          <p className="about-text">
+            SADAK SUDHAR is a digital platform built to bridge the gap between Nepali citizens 
+            and municipal authorities. We enable real-time reporting, tracking, and resolution 
+            of road issues including potholes, damaged roads, and infrastructure hazards.
+          </p>
+          
+          <p className="about-text">
+            Our mission is to create safer roads across Nepal by empowering citizens to report 
+            problems instantly and enabling authorities to respond efficiently.
+          </p>
+
+          <div className="features">
+            <div className="feature-item">
+              <span className="feature-icon">📍</span>
+              <h3 className="feature-title">Report Issues</h3>
+              <p className="feature-text">
+                Report potholes and road damage instantly with photos and exact location
+              </p>
+            </div>
+            
+            <div className="feature-item">
+              <span className="feature-icon">📊</span>
+              <h3 className="feature-title">Track Progress</h3>
+              <p className="feature-text">
+                Follow your report from submission to resolution with real-time status updates
+              </p>
+            </div>
+            
+            <div className="feature-item">
+              <span className="feature-icon">🚑</span>
+              <h3 className="feature-title">Emergency Response</h3>
+              <p className="feature-text">
+                Direct alerts to ambulance services for rapid response to road-related emergencies
+              </p>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Stats Section */}
       <div className="stats-section">
@@ -168,7 +201,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Recent Issues Section */}
+      {/* Recent Issues Section - Removed View All Issues button */}
       <div className="recent-section">
         <h2 className="section-title">Recent Issues</h2>
         {loading ? (
@@ -179,14 +212,14 @@ export default function Home() {
               <div key={issue.id} className="issue-card">
                 <div className="issue-header">
                   <span className={`status-badge ${getStatusClass(issue.status)}`}>
-                    {getStatusLabel(issue.status)}
+                    {getStatusLabel(issue.status || "pending")}
                   </span>
                 </div>
                 <p className="issue-description">
                   {issue.description || "No description available"}
                 </p>
                 <div className="issue-footer">
-                  <span className="issue-location">📍 Location #{issue.id}</span>
+                  <span className="issue-location">📍 Location #{issue.id.substring(0, 8)}</span>
                 </div>
               </div>
             ))}
@@ -194,27 +227,6 @@ export default function Home() {
         ) : (
           <p className="no-issues-text">No issues reported yet.</p>
         )}
-        <button className="view-all-button" onClick={() => navigate("/view-issues")}>
-          View All Issues
-        </button>
-      </div>
-
-      {/* Call to Action Section */}
-      <div className="cta-section">
-        <div className="cta-content">
-          <h2 className="cta-title">Ready to make a difference?</h2>
-          <p className="cta-text">
-            Join our community and help improve road safety in your area.
-          </p>
-          <div className="cta-buttons">
-            <button className="cta-primary-button" onClick={() => navigate("/register")}>
-              Register Now
-            </button>
-            <button className="cta-secondary-button" onClick={() => navigate("/login")}>
-              Login
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Footer */}

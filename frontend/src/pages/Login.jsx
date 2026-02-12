@@ -88,7 +88,7 @@ export default function Login() {
 
         <p style={styles.link}>
           Don't have an account?{" "}
-          <span onClick={() => navigate("/register")} style={styles.linkText}>
+          <span onClick={() => navigate("/register_citizen")} style={styles.linkText}>
             Register here
           </span>
         </p>
