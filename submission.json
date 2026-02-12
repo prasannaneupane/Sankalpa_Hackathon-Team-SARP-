@@ -1,0 +1,64 @@
+{
+  "projectName": "SARP - Smart Ambulance & Road Problem Management",
+  "tagline": "Real-time management of ambulances, road issues, and citizen reports for efficient resource allocation.",
+  "team": {
+    "name": "Team SARP",
+    "members": [
+      { "name": "Aayushya Shrestha", "role": "Frontend / UI", "email": "sthaayu333@gmail.com", "github": "https://github.com/username" },
+      { "name": "Prasanna Neupane", "role": "Backend / Database", "email": "neupaneprasanna85@gmail.com", "github": "https://github.com/username" },
+      { "name": "Rojan Neupane", "role": "Frontend / UX", "email": "rozen09@icloud.com", "github": "https://github.com/username" },
+      { "name": "Sujal Shrestha", "role": "Backend / Product", "email": "sujalst10@gmail.com", "github": "https://github.com/username" }
+    ]
+  },
+  "problem": "Admins struggle with manual tracking of road issues and ambulance management, leading to inefficiency and delays.",
+  "solution": "A unified platform enabling admins to manage ambulances and road issues, with real-time data and citizen feedback for faster response.",
+  "targetUsers": "Admin personnel managing road issues and ambulance dispatch; citizens who report road-related problems.",
+  "techStack": {
+    "frontend": "React, CSS Modules, Context API",
+    "backend": "Node.js, Express, JWT Authentication",
+    "database": "Supabase (PostgreSQL)",
+    "infra": "Deployed on AWS with CI/CD pipeline",
+    "apisTools": ["Leaflet API for location services"]
+  },
+  "features": [
+    "Real-time dashboard with statistics on issues, ambulances, and citizens",
+    "Citizens can report issues by uploading photos and descriptions",
+    "Admins can manage and resolve issues, assign ambulances, and track progress"
+  ],
+  "live": {
+    "url": "https://sarphackathon.live",
+    "testCredentials": "Admin: admin@example.com / password123"
+  },
+  "repositories": {
+    "monoRepo": "https://github.com/your-org/sarp-hackathon",
+    "frontend": "https://github.com/your-org/sarp-frontend",
+    "backend": "https://github.com/your-org/sarp-backend"
+  },
+  "screenshots": [
+    "screenshots/dashboard.png",
+    "screenshots/issues.png"
+  ],
+  "setup": {
+    "prerequisites": ["Node.js >= 16", "npm", "Supabase account (for database and auth)"],
+    "env": ["cp .env.example .env", "fill in SUPABASE_URL, SUPABASE_KEY, JWT_SECRET"],
+    "install": ["cd frontend && npm install", "cd backend && npm install"],
+    "run": ["npm run dev --prefix frontend", "npm run dev --prefix backend"]
+  },
+  "tests": [
+    "npm test --prefix frontend",
+    "npm test --prefix backend"
+  ],
+  "metrics": {
+    "primary": "Time to resolve issues",
+    "current": "2 hours per issue",
+    "target": "1 hour per issue"
+  },
+  "futureScope": [
+    "Mobile App: Extend functionality for mobile users",
+    "Advanced Analytics: Implement predictive analytics to forecast issue trends",
+    "Citizen App: Enable direct issue reporting from citizens",
+    "Multilingual Support: Expand accessibility for international users",
+    "Offline Mode: Allow for limited functionality even without internet access"
+  ],
+  "submittedAt": "2026-02-10T00:00:00Z"
+}
