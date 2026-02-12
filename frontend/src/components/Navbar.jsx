@@ -92,7 +92,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
                 <span className="user-role">{role}</span>
               </div>
             </div>
-            <button className="nav-button" onClick={() => navigate("/dashboard")}>
+            <button className="nav-button" onClick={() => navigate("/ambulance/dashboard")}>
               Dashboard
             </button>
             <button className="nav-button logout" onClick={handleLogout}>

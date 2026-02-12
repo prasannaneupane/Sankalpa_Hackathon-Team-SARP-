@@ -366,27 +366,41 @@ class IssueServiceClass {
         return data[0];
     }
 
-    async resolveIssue(issueId, ambulanceId, resolveData) {
-        const { data, error } = await supabase
-            .from('issues')
-            .update({ 
-                status: 'resolved', 
-                resolution_photo: resolveData.photo_url, 
-                resolution_comment: resolveData.comment, 
-                resolved_at: new Date() 
-            })
-            .eq('id', issueId)
-            .eq('ambulance_id', ambulanceId)
-            .select();
-        
-        if (error) throw error;
-        
-        await supabase
-            .from('ambulance_units')
-            .update({ is_available: true })
-            .eq('driver_id', ambulanceId);
-        
-        return data[0];
+    // In IssueService.js - Update resolveIssue method
+    async resolveIssue(issueId, ambulanceId, resolveData, file) {
+        try {
+            let resolution_photo_url = null;
+            
+            // Upload resolution photo if provided
+            if (file) {
+                resolution_photo_url = await this.uploadImageToStorage(file, ambulanceId);
+            }
+            
+            const { data, error } = await supabase
+                .from('issues')
+                .update({ 
+                    status: 'resolved', 
+                    resolution_photo: resolution_photo_url || resolveData.photo_url, // Fallback
+                    resolution_comment: resolveData.comment, 
+                    resolved_at: new Date() 
+                })
+                .eq('id', issueId)
+                .eq('ambulance_id', ambulanceId)
+                .select();
+            
+            if (error) throw error;
+            
+            // Mark ambulance as available again
+            await supabase
+                .from('ambulance_units')
+                .update({ is_available: true })
+                .eq('driver_id', ambulanceId);
+            
+            return data[0];
+        } catch (error) {
+            console.error('❌ resolveIssue error:', error);
+            throw error;
+        }
     }
 }
 

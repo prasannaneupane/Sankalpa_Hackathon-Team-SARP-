@@ -99,15 +99,27 @@ exports.claimIssue = async (req, res) => {
     }
 };
 
+// In issueController.js - Update resolveIssue
 exports.resolveIssue = async (req, res) => {
-    try { 
-        res.json(await IssueService.resolveIssue(req.params.id, req.user.id, req.body)); 
-    }
-    catch (err) { 
-        res.status(500).json({ error: err.message }); 
+    try {
+        const file = req.file; // Get uploaded file
+        const resolveData = req.body;
+        
+        console.log("📸 Resolving issue with image:", file?.originalname);
+        
+        const result = await IssueService.resolveIssue(
+            req.params.id, 
+            req.user.id, 
+            resolveData,
+            file // Pass the file
+        );
+        
+        res.json(result);
+    } catch (err) {
+        console.error("❌ Resolve error:", err);
+        res.status(500).json({ error: err.message });
     }
 };
-
 // NEW: Get issues for map
 exports.getIssuesForMap = async (req, res) => {
     try {

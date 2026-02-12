@@ -31,6 +31,12 @@ router.post('/:id/vote', authenticate, authorizeRole('citizen'), issueController
 
 // --- AMBULANCE ACTIONS ---
 router.put('/:id/claim', authenticate, authorizeRole('ambulance'), issueController.claimIssue);
-router.put('/:id/resolve', authenticate, authorizeRole('ambulance'), issueController.resolveIssue);
+router.put(
+    '/:id/resolve', 
+    authenticate, 
+    authorizeRole('ambulance'),
+    uploadMiddleware, // ✅ Add this to handle file upload
+    issueController.resolveIssue
+);
 
 module.exports = router;

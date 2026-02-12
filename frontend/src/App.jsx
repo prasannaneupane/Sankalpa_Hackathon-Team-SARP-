@@ -5,8 +5,9 @@ import Login from './pages/Login';
 import RegisterCitizen from './pages/Register_citizen';
 import CitizenDashboard from './pages/CitizenDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-//import AmbulanceDashboard from './pages/AmbulanceDashboard';
 import ReportIssue from './pages/ReportIssue';
+import AmbulanceDashboard from './pages/AmbulanceDashboard';
+import MissionView from './pages/MissionView';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -20,10 +21,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
   
   if (allowedRoles && !allowedRoles.includes(role)) {
-    // Redirect to appropriate dashboard based on role
     if (role === 'admin') return <Navigate to="/admin/dashboard" replace />;
-    //if (role === 'ambulance') return <Navigate to="/ambulance/dashboard" replace />;
-    return <Navigate to="/citizen-dashboard" replace />; // ← FIXED: Changed from /citizen/dashboard
+    if (role === 'ambulance') return <Navigate to="/ambulance/dashboard" replace />;
+    return <Navigate to="/citizen-dashboard" replace />;
   }
   
   return children;
@@ -37,13 +37,13 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register_citizen" element={<RegisterCitizen />} />
       
-      {/* Citizen Routes - MUST match Navbar paths */}
-      <Route path="/citizen-dashboard" element={   // ← FIXED: Changed from /citizen/dashboard
+      {/* Citizen Routes */}
+      <Route path="/citizen-dashboard" element={
         <ProtectedRoute allowedRoles={['citizen']}>
           <CitizenDashboard />
         </ProtectedRoute>
       } />
-      <Route path="/report" element={   // ← FIXED: Changed from /report-issue
+      <Route path="/report" element={
         <ProtectedRoute allowedRoles={['citizen']}>
           <ReportIssue />
         </ProtectedRoute>
@@ -57,16 +57,21 @@ function App() {
       } />
       
       {/* Ambulance Routes */}
-      {/* <Route path="/ambulance/dashboard" element={
+      <Route path="/ambulance/dashboard" element={
         <ProtectedRoute allowedRoles={['ambulance']}>
           <AmbulanceDashboard />
         </ProtectedRoute>
-      } />  */}
+      } />
+      <Route path="/mission/:id" element={
+        <ProtectedRoute allowedRoles={['ambulance']}>
+          <MissionView />
+        </ProtectedRoute>
+      } />
       
-      {/* Redirect from old paths to new paths (for backward compatibility) */}
+      {/* Redirects */}
       <Route path="/citizen/dashboard" element={<Navigate to="/citizen-dashboard"  />} />
       <Route path="/report-issue" element={<Navigate to="/report"  />} />
-      <Route path="/citizen-dashboard" element={<Navigate to="/citizen-dashboard"  />} /> {/* Prevent loop */}
+      
     </Routes>
   );
 }
