@@ -48,7 +48,7 @@ class IssueService {
 
     // --- VOTING & AMBULANCE ---
     async castVote(issueId, userId, voteValue) {
-        const { data, error } = await supabase.rpc('cast_secure_vote', { 
+        const { data, error } = await supabase.rpc('cast_secure_vote_v2', { 
             target_issue_id: issueId, voting_user_id: userId, new_vote_value: voteValue 
         });
         if (error) throw error;
