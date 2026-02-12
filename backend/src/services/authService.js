@@ -36,7 +36,7 @@ class AuthService {
      * 2. ADMIN-CONTROLLED CREATION (Restricted)
      * Used by the single Admin to create 'ambulance' or other 'admin' accounts.
      */
-    async adminCreateUser({ email, password, full_name, role }, requesterRole) {
+    async adminCreateUser({ email, password, full_name, role, vehicle_plate }, requesterRole) {
         if (requesterRole !== 'admin') throw new Error("Forbidden");
 
         // 1. Auth Creation
@@ -46,7 +46,7 @@ class AuthService {
         });
         if (authError) throw new Error(`Auth Error: ${authError.message}`);
 
-        // 2. Profile Creation (The DB trigger was crashing this step)
+        // 2. Profile Creation
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .insert([{ 
@@ -63,22 +63,40 @@ class AuthService {
             throw new Error(`DB_STEP_PROFILE: ${profileError.message}`);
         }
 
-        // 3. Ambulance Unit Creation (Using the correct driver_id)
+        // 3. Ambulance Unit Creation - USING VEHICLE PLATE FROM FRONTEND
         if (role === 'ambulance') {
+            // Check if vehicle plate already exists
+            const { data: existingVehicle } = await supabase
+                .from('ambulance_units')
+                .select('vehicle_plate')
+                .eq('vehicle_plate', vehicle_plate)
+                .single();
+
+            if (existingVehicle) {
+                await supabase.auth.admin.deleteUser(authData.user.id);
+                throw new Error(`Vehicle plate ${vehicle_plate} is already registered`);
+            }
+
             const { error: unitError } = await supabase
                 .from('ambulance_units')
                 .insert([{
-                    driver_id: profile.id, 
-                    vehicle_plate: `AMB-${Math.floor(1000 + Math.random() * 9000)}`,
-                    is_available: true
+                    driver_id: profile.id,
+                    vehicle_plate: vehicle_plate, // USING PLATE FROM FRONTEND
+                    is_available: true,
+                    created_at: new Date()
                 }]);
 
             if (unitError) {
+                await supabase.auth.admin.deleteUser(authData.user.id);
                 throw new Error(`DB_STEP_UNIT: ${unitError.message}`);
             }
         }
 
-        return { message: "Ambulance Created Successfully!", profile };
+        return { 
+            message: "Ambulance Created Successfully!", 
+            profile,
+            vehicle_plate // Return the assigned plate
+        };
     }
     /**
      * 3. UNIVERSAL LOGIN

@@ -4,12 +4,15 @@ const issueController = require('../controllers/issueController');
 const { authenticate, authorizeRole } = require('../middleware/authMiddleware');
 
 // --- DASHBOARDS ---
-// For Admins/Authorities to see high-level stats
-router.get('/dashboard', authenticate, authorizeRole('admin', 'authority'), issueController.getDashboard);
+router.get('/dashboard', issueController.getDashboard);
 
-// For Citizens/Ambulances to see the list/map
+// --- CITIZEN FEED WITH VOTE SCORES ---
 router.get('/', authenticate, issueController.getAllIssues);
 router.get('/check-nearby', authenticate, issueController.checkNearby);
+router.get('/map', authenticate, issueController.getIssuesForMap);
+
+// --- USER VOTES ---
+router.get('/votes/my-votes', authenticate, issueController.getMyVotes);
 
 // --- DETAILS ---
 router.get('/:id', authenticate, issueController.getIssueDetails);

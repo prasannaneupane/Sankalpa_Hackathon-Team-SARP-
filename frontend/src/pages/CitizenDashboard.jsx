@@ -1,74 +1,426 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import IssueCard from "../components/IssueCard";
+import API_BASE_URL from "../config";
+import "./CitizenDashboard.css";
 
 export default function CitizenDashboard() {
-  const [issues, setIssues] = useState([
-    { id: 1, title: "Broken street light", status: "ongoing", upvotes: 2, downvotes: 0 },
-    { id: 2, title: "Water leakage in pipeline", status: "completed", upvotes: 5, downvotes: 1 },
-  ]);
+  const [issues, setIssues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+  const [userVotes, setUserVotes] = useState({}); // Store user's votes from backend
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    assigned: 0,
+    resolved: 0
+  });
+  
+  // Infinite scroll
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const observerRef = useRef();
+  const lastIssueRef = useRef();
 
-  const username = localStorage.getItem("user");
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const token = localStorage.getItem("token");
 
-const handleVote = (id, type) => {
-  const storedVotes = JSON.parse(localStorage.getItem("votes")) || {};
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    show: false,
+    message: "",
+    type: "success"
+  });
 
-  if (!storedVotes[id]) {
-    storedVotes[id] = {};
-  }
+  // Fetch user's votes from backend
+  const fetchUserVotes = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/votes/my-votes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const votes = await response.json();
+        // Convert to object { issueId: voteValue }
+        const voteMap = {};
+        votes.forEach(vote => {
+          voteMap[vote.issue_id] = vote.vote_value;
+        });
+        setUserVotes(voteMap);
+      }
+    } catch (err) {
+      console.error("Error fetching votes:", err);
+    }
+  };
 
-  const previousVote = storedVotes[id][username];
+  // Fetch issues with pagination - UPDATED to use vote_score
+  const fetchIssues = async (pageNum = 1, append = false) => {
+    try {
+      if (pageNum === 1) setLoading(true);
+      else setRefreshing(true);
 
-  setIssues(prev =>
-    prev.map(issue => {
-      if (issue.id !== id) return issue;
+      const response = await fetch(
+        `${API_BASE_URL}/issues?page=${pageNum}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      let newUpvotes = issue.upvotes;
-      let newDownvotes = issue.downvotes;
+      const data = await response.json();
 
-      // If user already voted the same → do nothing
-      if (previousVote === type) {
-        return issue;
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch issues");
       }
 
-      // Remove previous vote if exists
-      if (previousVote === "up") newUpvotes -= 1;
-      if (previousVote === "down") newDownvotes -= 1;
-
-      // Add new vote
-      if (type === "up") newUpvotes += 1;
-      if (type === "down") newDownvotes += 1;
-
-      // Save new vote
-      storedVotes[id][username] = type;
-      localStorage.setItem("votes", JSON.stringify(storedVotes));
-
-      return {
+      // Merge issues with user votes
+      const issuesWithVotes = data.map(issue => ({
         ...issue,
-        upvotes: newUpvotes,
-        downvotes: newDownvotes
-      };
-    })
-  );
-};
+        userVote: userVotes[issue.id] || 0,
+        // Ensure vote_score exists
+        vote_score: issue.vote_score || 0,
+        total_votes: issue.total_votes || 0
+      }));
 
+      if (append) {
+        setIssues(prev => [...prev, ...issuesWithVotes]);
+      } else {
+        setIssues(issuesWithVotes);
+      }
+
+      setHasMore(data.length === 10);
+      setPage(pageNum);
+      
+      // Calculate stats
+      if (pageNum === 1) {
+        const total = data.length;
+        const pending = data.filter(i => i.status === "pending").length;
+        const assigned = data.filter(i => i.status === "assigned" || i.status === "in_progress").length;
+        const resolved = data.filter(i => i.status === "resolved").length;
+        setStats({ total, pending, assigned, resolved });
+      }
+
+    } catch (err) {
+      console.error("Fetch issues error:", err);
+      setError(err.message);
+      showSnackbar(`❌ ${err.message}`, "error");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchUserVotes().then(() => {
+      fetchIssues(1, false);
+    });
+  }, []);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !refreshing) {
+          fetchIssues(page + 1, true);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (lastIssueRef.current) {
+      observer.observe(lastIssueRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loading, hasMore, page, refreshing]);
+
+  // Handle vote - UPDATED to use vote_score
+  const handleVote = async (issueId, voteValue) => {
+    try {
+      const previousVote = userVotes[issueId] || 0;
+
+      // If same vote, do nothing
+      if (previousVote === voteValue) {
+        showSnackbar("You've already voted this way", "info");
+        return;
+      }
+
+      // Calculate the vote difference
+      let voteDifference = voteValue;
+      if (previousVote !== 0) {
+        // Remove previous vote first, then add new vote
+        voteDifference = voteValue - previousVote;
+      }
+
+      // Optimistic update
+      setIssues(prev =>
+        prev.map(issue => {
+          if (issue.id !== issueId) return issue;
+
+          return {
+            ...issue,
+            vote_score: (issue.vote_score || 0) + voteDifference,
+            total_votes: (issue.total_votes || 0) + (previousVote === 0 ? 1 : 0),
+            userVote: voteValue
+          };
+        })
+      );
+
+      // Update local userVotes state
+      setUserVotes(prev => ({
+        ...prev,
+        [issueId]: voteValue
+      }));
+
+      // Send to backend
+      const response = await fetch(`${API_BASE_URL}/issues/${issueId}/vote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ voteValue }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Revert on error
+        throw new Error(data.error || "Failed to cast vote");
+      }
+
+      showSnackbar(
+        voteValue === 1 ? "👍 Issue upvoted!" : voteValue === -1 ? "👎 Issue downvoted!" : "🔄 Vote removed!",
+        "success"
+      );
+
+    } catch (err) {
+      console.error("Vote error:", err);
+      showSnackbar(`❌ ${err.message}`, "error");
+      
+      // Revert optimistic update by refetching
+      fetchUserVotes();
+      fetchIssues(1, false);
+    }
+  };
+
+  const showSnackbar = (message, type = "success") => {
+    setSnackbar({ show: true, message, type });
+    setTimeout(() => {
+      setSnackbar(prev => ({ ...prev, show: false }));
+    }, 4000);
+  };
+
+  const hideSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, show: false }));
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "resolved":
+        return <span className="status-badge resolved">✅ Resolved</span>;
+      case "assigned":
+      case "in_progress":
+        return <span className="status-badge in-progress">🔄 In Progress</span>;
+      case "pending":
+        return <span className="status-badge pending">⏳ Pending</span>;
+      default:
+        return <span className="status-badge">{status}</span>;
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Recently";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
 
   return (
-    <div>
+    <div className="citizen-dashboard">
       <Navbar loggedIn={true} />
-      <div style={styles.container}>
-        <h1>Citizen Dashboard</h1>
-        <div style={styles.issues}>
-          {issues.map(issue => (
-            <IssueCard key={issue.id} issue={issue} handleVote={handleVote} />
-          ))}
+      
+      {/* Hero Stats Section */}
+      <div className="dashboard-hero">
+        <div className="hero-overlay"></div>
+        <div className="hero-content">
+          <h1 className="hero-title">Welcome, {user.full_name || "Citizen"}! 👋</h1>
+          <p className="hero-subtitle">Track and vote on road issues in your community</p>
+          
+          <div className="quick-stats">
+            <div className="stat-item">
+              <span className="stat-number">{stats.total}</span>
+              <span className="stat-label">Total Issues</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">{stats.pending}</span>
+              <span className="stat-label">Pending</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">{stats.assigned}</span>
+              <span className="stat-label">In Progress</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">{stats.resolved}</span>
+              <span className="stat-label">Resolved</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="dashboard-content">
+        <div className="content-header">
+          <h2 className="section-title">📋 Live Issues Feed</h2>
+          <button 
+            className="report-button"
+            onClick={() => navigate("/report-issue")}
+          >
+            + Report New Issue
+          </button>
+        </div>
+
+        {error && <div className="dashboard-error">{error}</div>}
+
+        {/* Issues Feed */}
+        <div className="issues-feed">
+          {loading && issues.length === 0 ? (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Loading issues...</p>
+            </div>
+          ) : (
+            <>
+              {issues.map((issue, index) => {
+                const userVote = issue.userVote || 0;
+                
+                return (
+                  <div
+                    key={issue.id}
+                    className="issue-card"
+                    ref={index === issues.length - 1 ? lastIssueRef : null}
+                  >
+                    <div className="issue-header">
+                      <div className="issue-meta">
+                        {getStatusBadge(issue.status)}
+                        <span className="issue-id">#{issue.id.substring(0, 6)}</span>
+                        <span className="issue-date">{formatDate(issue.created_at)}</span>
+                      </div>
+                      <div className="issue-weight">
+                        ⚠️ Priority: <span className={issue.weight > 1 ? "high-priority" : ""}>
+                          {issue.weight || 1}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="issue-body">
+                      <p className="issue-description">
+                        {issue.description || "No description provided"}
+                      </p>
+                      {issue.location && (
+                        <div className="issue-location">
+                          📍 {typeof issue.location === 'string' 
+                            ? issue.location.substring(0, 30) + '...' 
+                            : 'Location pinned'}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="issue-footer">
+                      <div className="vote-section">
+                        <button
+                          className={`vote-button upvote ${userVote === 1 ? 'active' : ''}`}
+                          onClick={() => handleVote(issue.id, 1)}
+                          disabled={loading}
+                        >
+                          👍 <span className="vote-count">+1</span>
+                        </button>
+                        <button
+                          className={`vote-button downvote ${userVote === -1 ? 'active' : ''}`}
+                          onClick={() => handleVote(issue.id, -1)}
+                          disabled={loading}
+                        >
+                          👎 <span className="vote-count">-1</span>
+                        </button>
+                        <span className={`vote-score ${issue.vote_score > 0 ? 'positive' : issue.vote_score < 0 ? 'negative' : 'zero'}`}>
+                          Score: {issue.vote_score || 0}
+                        </span>
+                        <span className="total-votes">
+                          ({issue.total_votes || 0} vote{issue.total_votes !== 1 ? 's' : ''})
+                        </span>
+                      </div>
+                      
+                      {issue.ambulance_id && (
+                        <div className="assigned-info">
+                          🚑 Assigned to ambulance
+                        </div>
+                      )}
+                    </div>
+
+                    {issue.sub_reports && issue.sub_reports.length > 0 && (
+                      <div className="sub-reports">
+                        <span className="sub-reports-count">
+                          📸 {issue.sub_reports.length} photo{issue.sub_reports.length > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {refreshing && (
+                <div className="loading-more">
+                  <div className="loading-spinner small"></div>
+                  <span>Loading more issues...</span>
+                </div>
+              )}
+
+              {!hasMore && issues.length > 0 && (
+                <div className="end-message">
+                  <span>🎉 You've seen all issues</span>
+                </div>
+              )}
+
+              {!loading && issues.length === 0 && (
+                <div className="empty-state">
+                  <div className="empty-icon">📭</div>
+                  <h3>No issues found</h3>
+                  <p>Be the first to report a road issue in your area!</p>
+                  <button 
+                    className="empty-report-button"
+                    onClick={() => navigate("/report-issue")}
+                  >
+                    Report an Issue
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Snackbar */}
+      <div className={`snackbar ${snackbar.show ? 'show' : ''} ${snackbar.type}`}>
+        <div className="snackbar-content">
+          <span className="snackbar-message">{snackbar.message}</span>
+          <button className="snackbar-close" onClick={hideSnackbar}>×</button>
+        </div>
+        <div className="snackbar-progress"></div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: { padding: 20 },
-  issues: { display: "flex", flexDirection: "column", gap: 15 },
-};

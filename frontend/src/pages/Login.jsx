@@ -34,7 +34,7 @@ export default function Login() {
       localStorage.setItem("role", data.user.role || "citizen");
 
       // Navigate to dashboard
-      navigate("/dashboard");
+      navigate("/citizen-dashboard");
     } catch (err) {
       setError(err.message || "Failed to login. Please try again.");
     } finally {
@@ -48,7 +48,7 @@ export default function Login() {
       <div style={styles.container}>
         <div style={styles.logoContainer}>
           <div style={styles.logo}>🚑</div>
-          <h1 style={styles.title}>Pothole Management</h1>
+          <h1 style={styles.title}>SADAK SUDHAR</h1>
           <p style={styles.subtitle}>Login to your account</p>
         </div>
 
