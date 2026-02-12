@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../App.css"; // make sure CSS is imported
 
 export default function ReportIssue() {
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [location, setLocation] = useState("");

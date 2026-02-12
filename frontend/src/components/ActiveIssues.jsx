@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getActiveIssues } from "../services/issueService";
+import "../global.css"; // Import global styles
 
 const ActiveIssues = () => {
     const [issues, setIssues] = useState([]);
@@ -23,11 +24,13 @@ const ActiveIssues = () => {
     }
 
     return (
-        <div>
+        <div className="container">
             <h1>Active Issues</h1>
             <ul>
                 {issues.map((issue) => (
-                    <li key={issue.id}>{issue.description}</li>
+                    <li key={issue.id}>
+                        <strong>Description:</strong> {issue.description}
+                    </li>
                 ))}
             </ul>
         </div>

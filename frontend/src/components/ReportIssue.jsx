@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { reportIssue } from "../services/issueService";
+import "../global.css"; // Import global styles
 
 const ReportIssue = () => {
     const [formData, setFormData] = useState({
@@ -26,10 +27,12 @@ const ReportIssue = () => {
     };
 
     return (
-        <div>
+        <div className="container">
             <h1>Report a New Issue</h1>
-            {success && <p>Issue reported successfully!</p>}
-            {error && <p>Error: {error}</p>}
+            {success && (
+                <p style={{ color: "green" }}>Issue reported successfully!</p>
+            )}
+            {error && <p style={{ color: "red" }}>Error: {error}</p>}
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
