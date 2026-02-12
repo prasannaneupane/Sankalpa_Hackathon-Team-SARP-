@@ -12,6 +12,9 @@ app.use(cors({
 // Global Middlewares
 app.use(express.json()); // Parses incoming JSON requests
 
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 // Import Route Files
 const authRoutes = require('./routes/authRoutes');
 const issueRoutes = require('./routes/issueRoutes');
