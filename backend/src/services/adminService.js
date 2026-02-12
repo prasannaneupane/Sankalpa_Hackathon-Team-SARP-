@@ -1,25 +1,56 @@
-const supabase = require('../config/db');
+const supabase = require('../config/db'); 
 
-class AdminService {
-    async fetchAnalytics() {
-        const { data: issues } = await supabase.from('issues').select('status');
-        
-        const stats = {
-            total: issues.length,
-            pending: issues.filter(i => i.status === 'pending').length,
-            resolved: issues.filter(i => i.status === 'resolved').length
-        };
+const adminServices = {
+    /**
+     * View All Citizens (unchanged)
+     */
+    getAllCitizens: async () => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('id, full_name, role, is_verified, reputation_score, created_at')
+            .eq('role', 'citizen')
+            .order('created_at', { ascending: false });
 
-        return stats;
-    }
+        if (error) throw new Error(error.message);
+        return data;
+    },
 
-    async setZoneWeight(zoneId, newWeight) {
-        // Manual override for high-priority areas (like schools)
-        return await supabase
+    /**
+     * View All Ambulance Units (JOINED)
+     * Fetches vehicle data AND driver profile info
+     */
+    getAllAmbulanceUnits: async () => {
+        const { data, error } = await supabase
+            .from('ambulance_units')
+            .select(`
+                id,
+                vehicle_plate,
+                is_available,
+                current_location,
+                driver_info:profiles!driver_id (
+                    full_name,
+                    is_verified,
+                    reputation_score
+                )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw new Error(error.message);
+        return data;
+    },
+
+    /**
+     * View All Issues
+     */
+    getAllIssues: async () => {
+        const { data, error } = await supabase
             .from('issues')
-            .update({ weight: newWeight })
-            .filter('location', 'contained_in_zone', zoneId); 
-    }
-}
+            .select('*')
+            .order('weight', { ascending: false });
 
-module.exports = new AdminService();
+        if (error) throw new Error(error.message);
+        return data;
+    }
+};
+
+module.exports = adminServices;

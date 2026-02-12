@@ -1,21 +1,47 @@
-const adminService = require('../services/adminService');
+const adminServices = require('../services/adminService');
 
-exports.getCityStats = async (req, res) => {
-    try {
-        const stats = await adminService.fetchAnalytics();
-        res.status(200).json(stats);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+const adminController = {
+    // 1. Fetch only users with the 'citizen' role
+    getCitizens: async (req, res) => {
+        try {
+            const data = await adminServices.getAllCitizens();
+            res.status(200).json({ 
+                success: true, 
+                count: data.length, 
+                data 
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    // 2. Fetch ambulance profiles + vehicle details
+    getAmbulances: async (req, res) => {
+        try {
+            const data = await adminServices.getAllAmbulanceUnits();
+            res.status(200).json({ 
+                success: true, 
+                count: data.length, 
+                data 
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    // 3. Fetch all reported issues
+    getIssues: async (req, res) => {
+        try {
+            const data = await adminServices.getAllIssues();
+            res.status(200).json({ 
+                success: true, 
+                count: data.length, 
+                data 
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 
-exports.updateZonePriority = async (req, res) => {
-    try {
-        const { id } = req.params; // Zone ID
-        const { weight } = req.body;
-        const result = await adminService.setZoneWeight(id, weight);
-        res.status(200).json(result);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
+module.exports = adminController;
