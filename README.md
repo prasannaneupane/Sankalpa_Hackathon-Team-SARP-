@@ -1,125 +1,138 @@
-﻿SARP-Hackathon
-What It Does
+# Sadak Sudhar
+
+## What It Does
 A web-based dashboard for admins to manage ambulances, citizens, and road issues with real-time insights.
 
-Proof Points
-* Efficiency: Reduces admin workload by 50% through automated issue tracking and ambulance management.
-* Scalability: Supports 100+ concurrent users with optimized API calls and responsive design.
+## Proof Points
+- **Efficiency**: Reduces admin workload by 50% through automated issue tracking and ambulance management.
+- **Scalability**: Supports 100+ concurrent users with optimized API calls and responsive design.
 
-Team
-Name	Role / Ownership	Contact
-Aayushya Shrestha	Frontend / UI	sthaayu333@gmail.com
-Prasanna Neupane	Backend/ Database	neupaneprasanna85@gmail.com
-Rojan Neupane	Frontend / UX	rozen09@icloud.com
-Sujal Shrestha	Backend / Product	sujalst10@gmail.com
-Team Name: Team SARP
+## Team
+**Team Name**: Team SARP
 
-Problem & Users
-* Primary User: Admins managing ambulances, road issues, and citizen reports.
-* Top Pain Point: Inefficient manual processes for tracking issues and managing ambulance assignments.
-Why Existing Workarounds Are Bad:
-* Time Lost: Manual tracking wastes 2+ hours per day for each admin.
-* Errors: High risk of mismanagement due to lack of real-time data and notifications.
-Success If Solved:Saves 2 hours/day per admin and improves ambulance response time by 30%.
+| Name              | Role / Ownership     | Contact                |
+|-------------------|----------------------|------------------------|
+| Aayushya Shrestha | Frontend / UI        | sthaayu333@gmail.com    |
+| Prasanna Neupane  | Backend / Database   | neupaneprasanna85@gmail.com |
+| Rojan Neupane     | Frontend / UX        | rozen09@icloud.com     |
+| Sujal Shrestha    | Backend / Product    | sujalst10@gmail.com     |
 
-Solution
-Description
+## Problem & Users
+- **Primary User**: Admins managing ambulances, road issues, and citizen reports.
+- **Top Pain Point**: Inefficient manual processes for tracking issues and managing ambulance assignments.
+
+### Why Existing Workarounds Are Bad:
+- **Time Lost**: Manual tracking wastes 2+ hours per day for each admin.
+- **Errors**: High risk of mismanagement due to lack of real-time data and notifications.
+- **Success If Solved**: Saves 2 hours/day per admin and improves ambulance response time by 30%.
+
+## Solution
+
+### Description
 SARP is a web-based admin dashboard that enables real-time management of ambulances, citizens, and road issues. It helps streamline tasks, providing an intuitive interface to track and resolve issues efficiently.
-User Flow
-1. Admin Login: Admin securely logs in to access the platform.
-2. Dashboard Overview: Views real-time stats on issues, ambulances, and citizen reports.
-3. Issue Management: Filters, updates, and exports issues; assigns ambulances to critical cases.
-4. Ambulance Management: Registers new ambulances, toggles availability, and monitors performance.
-5. Citizen Monitoring: Tracks and responds to citizen reports and feedback.
-6. Real-Time Updates: Resolves issues and monitors ambulance locations via the integrated map interface.
-7. Logout: Ends the session securely.
-8. 
-Magic Moment
+
+### User Flow
+1. **Admin Login**: Admin securely logs in to access the platform.
+2. **Dashboard Overview**: Views real-time stats on issues, ambulances, and citizen reports.
+3. **Issue Management**: Filters, updates, and exports issues; assigns ambulances to critical cases.
+4. **Ambulance Management**: Registers new ambulances, toggles availability, and monitors performance.
+5. **Citizen Monitoring**: Tracks and responds to citizen reports and feedback.
+6. **Real-Time Updates**: Resolves issues and monitors ambulance locations via the integrated map interface.
+7. **Logout**: Ends the session securely.
+
+### Magic Moment
 The first time an admin resolves a road issue in real-time using the map-based interface.
 
-Key Features
-* Dashboard Stats: Displays real-time stats on road issues, ambulances, and citizens.
-* Issue Management: Quickly filter, search, and export issues to CSV for detailed reports.
-* Ambulance Registration: Easy creation and management of ambulance accounts with all necessary details.
+## Key Features
+- **Dashboard Stats**: Displays real-time stats on road issues, ambulances, and citizens.
+- **Issue Management**: Quickly filter, search, and export issues to CSV for detailed reports.
+- **Ambulance Registration**: Easy creation and management of ambulance accounts with all necessary details.
 
-Why It's Better
-* Faster: Real-time updates reduce delays by 30%.
-* Easier: An intuitive UI simplifies admin workflows and reduces complexity.
-* Limitations: Requires a stable internet connection for real-time updates to function properly.
+## Why It's Better
+- **Faster**: Real-time updates reduce delays by 30%.
+- **Easier**: An intuitive UI simplifies admin workflows and reduces complexity.
+- **Limitations**: Requires a stable internet connection for real-time updates to function properly.
 
- Test Credentials:
-    * Admin: admin@example.com
-    * Password: password123
-
-Screenshots
-Architecture Overview
-Diagram:
-
-Flow:User → Frontend (React) → Supabase (Database + Auth + Backend Services) → Response → Frontend
-Data Notes:
-* Stored: User info, issues, ambulance data.
-* Retention: Data is stored for 1 year.
-* 
-Tech Stack
-* Frontend: React, CSS Modules, Context API
-* Backend: Node.js, Express, JWT Authentication
-* Database: Supabase (PostgreSQL)
-* APIs: Leaflet API for location services.
+### Test Credentials:
+- **Admin**: admin@example.com
+- **Password**: password123
 
 
-Data, Privacy, Security
-* PII Handling: Personal data is securely stored in Supabase (PostgreSQL) and encrypted in transit and at rest.
-* Secrets Management: Managed through environment variables in .env files.
-* Authorization: Role-based access control (RBAC) is implemented using Supabase's built-in authentication and policies.
-* Logging: Supabase automatically logs database queries and admin actions for auditing purposes.
+### Data Notes:
+- **Stored**: User info, issues, ambulance data.
+- **Retention**: Data is stored for 1 year.
 
-Setup 
-Prerequisites
-* Node.js v16+
-* MongoDB
-* npm
-Setup Instructions
-Prerequisites
-* Node.js v16+
-* npm
-Setup Instructions
-1. Copy Environment Variables:Copy the .env.example file to .env and fill in the required keys (e.g., SUPABASE_URL, SUPABASE_KEY).
-2. Install Dependencies:
-    * Frontend:    cd frontend && npm install
-* Run the App:
-* Frontend:
-* npm run dev
-* Seed Data (if applicable):Supabase handles database initialization automatically, so no manual seeding is required unless specified.
-* App URL:Access the app locally at:http://localhost:3000
+## Tech Stack
+- **Frontend**: React, CSS Modules, Context API
+- **Backend**: Node.js, Express, JWT Authentication
+- **Database**: Supabase (PostgreSQL)
+- **APIs**: Leaflet API for location services.
 
-Usage Walkthrough
-1.  Usage Walkthrough
-2.  Log in as an admin using the provided test credentials.  
-3.  View the real-time dashboard stats, including issues, ambulances, and citizen reports.  
-4.  Register a new ambulance and assign it to an area.  
-5.  Filter and export issues to CSV for detailed analysis.  
-6.  Toggle ambulance status to reflect operational updates.  
-7.  Resolve road issues in real-time using the map-based interface.
-8. Citizens can log in, upload photos to report issues through citizens dashboard.
+## Data, Privacy, Security
+- **PII Handling**: Personal data is securely stored in Supabase (PostgreSQL) and encrypted in transit and at rest.
+- **Secrets Management**: Managed through environment variables in `.env` files.
+- **Authorization**: Role-based access control (RBAC) is implemented using Supabase's built-in authentication and policies.
+- **Logging**: Supabase automatically logs database queries and admin actions for auditing purposes.
 
-Future Scope
-* Mobile App: Extend functionality for mobile users.
-* Advanced Analytics: Implement predictive analytics to forecast issue trends.
-* Citizen App: Enable direct issue reporting from citizens.
-* Multilingual Support: Expand accessibility for international users.
-* Offline Mode: Allow for limited functionality even without internet access.
+## Setup
 
-Timeline (Hackathon Log)
-* Day 1: Problem validation and initial setup.
-* Day 2: Prototype development.
-* Day 3: Final polish and deployment.
+### Prerequisites
+- Node.js v16+
+- MongoDB
+- npm
 
-Submission Checklist
-* README Completed 
-* Live Link Verified (localhost) 
-* Screenshots Added
-* submission.json Filled
+### Setup Instructions
 
-Credits & License
-* Attributions: Leaflet Maps API, Open Source Libraries.
-* License: MIT License
+1. **Copy Environment Variables**:  
+   Copy the `.env.example` file to `.env` and fill in the required keys (e.g., `SUPABASE_URL`, `SUPABASE_KEY`).
+
+2. **Install Dependencies**:
+   - **Frontend**:  
+     ```bash
+     cd frontend && npm install
+     ```
+
+3. **Run the App**:
+   - **Frontend**:
+     ```bash
+     npm run dev
+     ```
+
+4. **Seed Data (if applicable)**:  
+   Supabase handles database initialization automatically, so no manual seeding is required unless specified.
+
+5. **App URL**:  
+   Access the app locally at:  
+   [http://localhost:3000](http://localhost:3000)
+
+## Usage Walkthrough
+
+1. **Log in** as an admin using the provided test credentials.  
+2. **View** the real-time dashboard stats, including issues, ambulances, and citizen reports.  
+3. **Register** a new ambulance and assign it to an area.  
+4. **Filter** and **export** issues to CSV for detailed analysis.  
+5. **Toggle** ambulance status to reflect operational updates.  
+6. **Resolve** road issues in real-time using the map-based interface.
+7. **Citizens** can log in, upload photos to report issues through the citizen dashboard.
+
+## Future Scope
+- **Mobile App**: Extend functionality for mobile users.
+- **Advanced Analytics**: Implement predictive analytics to forecast issue trends.
+- **Citizen App**: Enable direct issue reporting from citizens.
+- **Multilingual Support**: Expand accessibility for international users.
+- **Offline Mode**: Allow for limited functionality even without internet access.
+
+## Timeline (Hackathon Log)
+- **Day 1**: Problem validation and initial setup.
+- **Day 2**: Prototype development.
+- **Day 3**: Final polish and deployment.
+
+## Submission Checklist
+- [x] README Completed
+- [x] Live Link Verified (localhost)
+- [x] Screenshots Added
+- [x] `submission.json` Filled
+
+## Credits & License
+- **Attributions**: Leaflet Maps API, Open Source Libraries.
+- **License**: MIT License.
