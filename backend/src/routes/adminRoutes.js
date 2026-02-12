@@ -9,9 +9,18 @@ const { authenticate, authorizeRole } = require('../middleware/authMiddleware');
  */
 router.use(authenticate, authorizeRole('admin'));
 
-// Individual endpoints for targeted dashboard views
+// Dashboard endpoints
 router.get('/view-citizens', adminController.getCitizens);
 router.get('/view-ambulances', adminController.getAmbulances);
 router.get('/view-issues', adminController.getIssues);
+router.get('/dashboard-stats', adminController.getDashboardStats);
+
+// Ambulance management
+router.post('/create-ambulance', adminController.createAmbulance);
+router.put('/ambulances/:id/status', adminController.toggleAmbulanceStatus);
+router.put('/ambulances/:id/reset-password', adminController.resetAmbulancePassword);
+
+// Issue management
+router.delete('/issues/:id', adminController.deleteIssue);
 
 module.exports = router;

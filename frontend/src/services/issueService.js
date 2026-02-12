@@ -25,10 +25,9 @@ export const reportIssue = async (issueData) => {
         const response = await fetch(`${API_BASE_URL}/issues/report`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${localStorage.getItem("token")}`, // Replace with actual token
             },
-            body: JSON.stringify(issueData),
+            body: formData,
         });
         if (!response.ok) {
             throw new Error("Failed to report issue");

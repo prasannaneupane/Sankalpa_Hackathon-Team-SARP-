@@ -22,7 +22,12 @@ class IssueServiceClass {
     // ============ IMAGE UPLOAD TO SUPABASE STORAGE ============
     
     async uploadImageToStorage(file, userId) {
-           console.log('🔑 Using SERVICE_ROLE_KEY from env:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ Present' : '❌ Missing');
+        console.log('🔍 ENV CHECK:');
+        console.log('  SUPABASE_URL:', process.env.SUPABASE_URL ? '✅' : '❌');
+        console.log('  SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅' : '❌');
+        console.log('  Key length:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0);
+        console.log('  Key prefix:', process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 15) + '...');
+    
         try {
             if (!file || !file.buffer) {
                 throw new Error('No file provided');

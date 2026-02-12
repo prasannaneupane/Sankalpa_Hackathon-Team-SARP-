@@ -31,14 +31,35 @@ export default function Login() {
       // Store user data and token in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("role", data.user.role || "citizen");
+      localStorage.setItem("role", data.user.role);
 
-      // Navigate to dashboard
-      navigate("/citizen-dashboard");
+      console.log("Login successful:", data.user); // Debug log
+
+      // ✅ REDIRECT BASED ON ROLE
+      const role = data.user.role;
+      
+      if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "ambulance") {
+        navigate("/ambulance/dashboard");
+      } else if (role === "citizen") {
+        navigate("/citizen/dashboard");
+      } else {
+        // Default fallback
+        navigate("/citizen/dashboard");
+      }
+      
     } catch (err) {
       setError(err.message || "Failed to login. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLogin();
     }
   };
 
@@ -61,6 +82,7 @@ export default function Login() {
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={handleKeyPress}
             style={styles.input}
           />
         </div>
@@ -72,11 +94,18 @@ export default function Login() {
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={handleKeyPress}
             style={styles.input}
           />
         </div>
 
-        <button onClick={handleLogin} style={styles.button} disabled={loading}>
+        <button 
+          onClick={handleLogin} 
+          style={styles.button} 
+          disabled={loading}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#b01030'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#DC143C'}
+        >
           {loading ? "Logging in..." : "Login"}
         </button>
 
@@ -121,113 +150,129 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(220, 20, 60, 0.7)", // Crimson overlay
+    backgroundColor: "rgba(220, 20, 60, 0.85)", // Darker crimson for better contrast
   },
   container: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "15px",
-    padding: "40px 50px",
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: "16px",
-    boxShadow: "0 10px 40px rgba(0, 0, 0, 0.3)",
+    gap: "16px",
+    padding: "40px 40px",
+    backgroundColor: "rgba(255, 255, 255, 0.98)",
+    borderRadius: "20px",
+    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.2)",
     zIndex: 1,
-    minWidth: "350px",
-    maxWidth: "400px",
+    minWidth: "380px",
+    maxWidth: "420px",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
   },
   logoContainer: {
     textAlign: "center",
-    marginBottom: "10px",
+    marginBottom: "8px",
   },
   logo: {
-    fontSize: "50px",
-    marginBottom: "10px",
+    fontSize: "56px",
+    marginBottom: "12px",
+    animation: "float 3s ease-in-out infinite",
   },
   title: {
     margin: 0,
-    fontSize: "24px",
-    color: "#DC143C", // Crimson
-    fontWeight: "bold",
+    fontSize: "28px",
+    color: "#DC143C",
+    fontWeight: "800",
+    letterSpacing: "-0.5px",
   },
   subtitle: {
-    margin: "5px 0 0 0",
+    margin: "8px 0 0 0",
     fontSize: "14px",
-    color: "#666",
+    color: "#64748b",
+    fontWeight: "500",
   },
   inputGroup: {
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: "5px",
+    gap: "6px",
   },
   label: {
     fontSize: "14px",
     fontWeight: "600",
-    color: "#333",
+    color: "#1e293b",
   },
   input: {
-    padding: "12px 15px",
+    padding: "14px 18px",
     width: "100%",
-    border: "2px solid #e0e0e0",
-    borderRadius: "8px",
-    fontSize: "14px",
-    transition: "border-color 0.3s ease",
+    border: "2px solid #e2e8f0",
+    borderRadius: "12px",
+    fontSize: "15px",
+    transition: "all 0.3s ease",
     boxSizing: "border-box",
     outline: "none",
+    backgroundColor: "#f8fafc",
   },
   button: {
-    padding: "12px 20px",
+    padding: "14px 20px",
     width: "100%",
-    backgroundColor: "#DC143C", // Crimson
+    backgroundColor: "#DC143C",
     color: "#fff",
     border: "none",
-    borderRadius: "8px",
+    borderRadius: "12px",
     fontSize: "16px",
-    fontWeight: "bold",
+    fontWeight: "700",
     cursor: "pointer",
-    transition: "background-color 0.3s ease, transform 0.2s ease",
-    marginTop: "10px",
+    transition: "all 0.3s ease",
+    marginTop: "16px",
+    letterSpacing: "0.5px",
+    textTransform: "uppercase",
   },
   error: {
     color: "#DC143C",
     backgroundColor: "#ffe6e6",
-    padding: "10px 15px",
-    borderRadius: "8px",
+    padding: "12px 18px",
+    borderRadius: "12px",
     width: "100%",
     textAlign: "center",
     fontSize: "14px",
     boxSizing: "border-box",
+    border: "1px solid #ffb3b3",
   },
   divider: {
     display: "flex",
     alignItems: "center",
     width: "100%",
-    margin: "10px 0",
+    margin: "16px 0 8px",
   },
   dividerLine: {
     flex: 1,
     height: "1px",
-    backgroundColor: "#e0e0e0",
+    background: "linear-gradient(to right, transparent, #e2e8f0, transparent)",
   },
   dividerText: {
-    padding: "0 10px",
-    color: "#999",
-    fontSize: "12px",
-  },
-  link: {
-    margin: 0,
-    fontSize: "14px",
-    color: "#666",
-  },
-  linkText: {
-    color: "#DC143C", // Crimson
-    cursor: "pointer",
-    textDecoration: "none",
+    padding: "0 16px",
+    color: "#94a3b8",
+    fontSize: "13px",
     fontWeight: "600",
   },
+  link: {
+    margin: "4px 0",
+    fontSize: "15px",
+    color: "#475569",
+  },
+  linkText: {
+    color: "#DC143C",
+    cursor: "pointer",
+    textDecoration: "none",
+    fontWeight: "700",
+    transition: "color 0.2s ease",
+  },
   backLink: {
-    marginTop: "5px",
+    marginTop: "8px",
     fontSize: "14px",
   },
+};
+
+// Add animation to styles
+styles['@keyframes float'] = {
+  '0%, 100%': { transform: 'translateY(0px)' },
+  '50%': { transform: 'translateY(-10px)' },
 };
