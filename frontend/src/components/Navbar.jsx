@@ -12,6 +12,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/");
+    window.scrollTo(0, 0); // Scroll to top when logout
   };
 
   const getUserInitial = () => {
@@ -26,9 +27,15 @@ export default function Navbar({ loggedIn, toggleAbout }) {
     return "U";
   };
 
+  // Scroll to top of the page when navigating to any of the routes
+  const goToPage = (path) => {
+    navigate(path);
+    window.scrollTo({ top: 0, behavior: "smooth" }); // Smooth scroll to top
+  };
+
   return (
     <nav className="navbar">
-      <div className="navbar-brand" onClick={() => navigate("/")}>
+      <div className="navbar-brand" onClick={() => goToPage(loggedIn ? "/citizen-dashboard" : "/")}>
         <img className="navbar-logo" src="../public/logo.png" alt="SADAK SUDHAR Logo" />
         <h2 className="navbar-title">SADAK SUDHAR</h2>
       </div>
@@ -36,7 +43,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
       <div className="navbar-links">
         {/* --- BACK BUTTON for REPORT PAGE --- */}
         {location.pathname.startsWith("/report") && (
-          <button className="nav-button back" onClick={() => navigate("/citizen-dashboard")}>
+          <button className="nav-button back" onClick={() => goToPage("/citizen-dashboard")}>
             ← Back
           </button>
         )}
@@ -45,7 +52,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
         {!loggedIn && !location.pathname.startsWith("/report") && (
           <>
             {location.pathname !== "/" && (
-              <button className="nav-button" onClick={() => navigate("/")}>
+              <button className="nav-button" onClick={() => goToPage("/")}>
                 Home
               </button>
             )}
@@ -53,10 +60,10 @@ export default function Navbar({ loggedIn, toggleAbout }) {
               About
             </button>
             <span className="nav-divider"></span>
-            <button className="nav-button outline" onClick={() => navigate("/login")}>
+            <button className="nav-button outline" onClick={() => goToPage("/login")}>
               Login
             </button>
-            <button className="nav-button primary" onClick={() => navigate("/register_citizen")}>
+            <button className="nav-button primary" onClick={() => goToPage("/register_citizen")}>
               Register as Citizen
             </button>
           </>
@@ -71,10 +78,10 @@ export default function Navbar({ loggedIn, toggleAbout }) {
                 <span className="user-role">{role}</span>
               </div>
             </div>
-            <button className="nav-button" onClick={() => navigate("/citizen-dashboard")}>
+            <button className="nav-button" onClick={() => goToPage("/citizen-dashboard")}>
               Dashboard
             </button>
-            <button className="nav-button primary" onClick={() => navigate("/report")}>
+            <button className="nav-button primary" onClick={() => goToPage("/report")}>
               Report Issue
             </button>
             <button className="nav-button logout" onClick={handleLogout}>
@@ -92,7 +99,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
                 <span className="user-role">{role}</span>
               </div>
             </div>
-            <button className="nav-button" onClick={() => navigate("/ambulance/dashboard")}>
+            <button className="nav-button" onClick={() => goToPage("/ambulance/dashboard")}>
               Dashboard
             </button>
             <button className="nav-button logout" onClick={handleLogout}>
