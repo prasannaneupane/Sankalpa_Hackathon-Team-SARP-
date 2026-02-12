@@ -29,7 +29,7 @@ A web-based dashboard for admins to manage ambulances, citizens, and road issues
 ## Solution
 
 ### Description
-SARP is a web-based admin dashboard that enables real-time management of ambulances, citizens, and road issues. It helps streamline tasks, providing an intuitive interface to track and resolve issues efficiently.
+Sadak Sudhar is a web-based admin dashboard that enables real-time management of ambulances, citizens, and road issues. It helps streamline tasks, providing an intuitive interface to track and resolve issues efficiently.
 
 ### User Flow
 1. **Admin Login**: Admin securely logs in to access the platform.
@@ -39,9 +39,6 @@ SARP is a web-based admin dashboard that enables real-time management of ambulan
 5. **Citizen Monitoring**: Tracks and responds to citizen reports and feedback.
 6. **Real-Time Updates**: Resolves issues and monitors ambulance locations via the integrated map interface.
 7. **Logout**: Ends the session securely.
-
-### Magic Moment
-The first time an admin resolves a road issue in real-time using the map-based interface.
 
 ## Key Features
 - **Dashboard Stats**: Displays real-time stats on road issues, ambulances, and citizens.
@@ -54,8 +51,8 @@ The first time an admin resolves a road issue in real-time using the map-based i
 - **Limitations**: Requires a stable internet connection for real-time updates to function properly.
 
 ### Test Credentials:
-- **Admin**: admin@example.com
-- **Password**: password123
+- **Admin**: admin@sarp.com
+- **Password**: admin123
 
 
 ### Data Notes:
@@ -78,7 +75,7 @@ The first time an admin resolves a road issue in real-time using the map-based i
 
 ### Prerequisites
 - Node.js v16+
-- MongoDB
+- Supabase
 - npm
 
 ### Setup Instructions
@@ -91,9 +88,17 @@ The first time an admin resolves a road issue in real-time using the map-based i
      ```bash
      cd frontend && npm install
      ```
+   - **Backend**:  
+     ```bash
+     cd backend && npm install
+     ```
 
 3. **Run the App**:
    - **Frontend**:
+     ```bash
+     npm run dev
+     ```
+   - **Backend**:
      ```bash
      npm run dev
      ```
@@ -129,7 +134,6 @@ The first time an admin resolves a road issue in real-time using the map-based i
 
 ## Submission Checklist
 - [x] README Completed
-- [x] Live Link Verified (localhost)
 - [x] Screenshots Added
 - [x] `submission.json` Filled
 
