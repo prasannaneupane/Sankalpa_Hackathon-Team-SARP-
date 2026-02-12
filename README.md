@@ -1,4 +1,4 @@
-﻿# SARP-Hackathon
+﻿# Sadak Sudhar
 
 ## What It Does
 A web-based dashboard for admins to manage ambulances, citizens, and road issues with real-time insights.
@@ -57,12 +57,6 @@ The first time an admin resolves a road issue in real-time using the map-based i
 - **Admin**: admin@example.com
 - **Password**: password123
 
-## Screenshots
-### Architecture Overview
-**Diagram**: ![Architecture Diagram](screenshots/architecture.png)
-
-### Flow:
-User → Frontend (React) → Supabase (Database + Auth + Backend Services) → Response → Frontend
 
 ### Data Notes:
 - **Stored**: User info, issues, ambulance data.
