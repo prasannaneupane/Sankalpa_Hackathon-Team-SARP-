@@ -38,11 +38,15 @@
   font-size: 14px;
   color: #64748b;
   margin: 0;
+  font-family: "Poppins" !important;
+
 }
 
 .admin-actions {
   display: flex;
   gap: 12px;
+  font-family: "Poppins" !important;
+
 }
 
 .create-ambulance-btn {
@@ -59,6 +63,8 @@
   align-items: center;
   gap: 8px;
   box-shadow: 0 4px 12px rgba(220, 20, 60, 0.2);
+  
+  font-family: "Poppins" !important;
 }
 
 .create-ambulance-btn:hover {
@@ -79,6 +85,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  
+  font-family: "Poppins" !important;
 }
 
 .export-btn:hover {
@@ -100,6 +108,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: "Poppins" !important;
 }
 
 .refresh-btn:hover {
@@ -149,6 +158,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: "Poppins" !important;
 }
 
 .tab-btn:hover {
@@ -159,6 +169,7 @@
 .tab-btn.active {
   background: #DC143C;
   color: white;
+  font-family: "Poppins" !important;
 }
 
 /* ============ STATS GRID ============ */
@@ -188,10 +199,10 @@
 }
 
 .stat-icon {
-  font-size: 32px;
+  font-size: 16px;
   background: #f8fafc;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 5px;
+  border-radius: 30px;
 }
 
 .stat-info {
@@ -201,10 +212,11 @@
 
 .stat-label {
   font-size: 13px;
-  color: #64748b;
+  color: #64748b !important;
   margin-bottom: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.1px;
+  font-family: "Poppins" !important;
 }
 
 .stat-value {
@@ -229,6 +241,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  font-family: "Poppins" !important;
 }
 
 .section-title {
@@ -261,6 +274,8 @@
   padding: 8px 16px;
   border-radius: 30px;
   transition: all 0.3s ease;
+  font-family: "Poppins" !important;
+
 }
 
 .view-all-btn:hover {
@@ -364,6 +379,8 @@
   cursor: pointer;
   min-width: 160px;
   transition: all 0.3s ease;
+  
+  font-family: "Poppins" !important;
 }
 
 .filter-select:focus {
@@ -380,6 +397,7 @@
   color: #1e293b;
   min-width: 200px;
   transition: all 0.3s ease;
+  font-family: "Poppins" !important;
 }
 
 .filter-input:focus {
@@ -398,6 +416,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-family: "Poppins" !important;
+  
 }
 
 .clear-filters-btn:hover {
@@ -628,6 +648,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  font-family: "Poppins" !important;
 }
 
 .ambulance-icon {
@@ -660,12 +681,14 @@
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 8px 0;
+  font-family: "Poppins" !important;
 }
 
 .ambulance-email {
   font-size: 14px;
   color: #64748b;
   margin: 0 0 16px 0;
+  font-family: "Poppins" !important;
 }
 
 .ambulance-info {
@@ -682,6 +705,7 @@
   font-size: 12px;
   color: #1e293b;
   border: 1px solid #e2e8f0;
+  font-family: "Poppins" !important;
 }
 
 .ambulance-stats {
@@ -713,6 +737,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  font-family: "Poppins" !important;
 }
 
 .reset-password-btn:hover {
@@ -732,6 +757,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  font-family: "Poppins" !important;
 }
 
 .status-toggle-btn.deactivate {
@@ -1089,11 +1115,14 @@
   .tab-btn {
     width: 100%;
     justify-content: center;
+    font-family: "Poppins" !important;
   }
   
   .issue-filters {
     flex-direction: column;
     align-items: stretch;
+    font-family: "Poppins" !important;
+    
   }
   
   .filter-select,
@@ -1118,6 +1147,7 @@
   
   .admin-title {
     font-size: 24px;
+    font-family: "Poppins" !important;
   }
   
   .modal-content {

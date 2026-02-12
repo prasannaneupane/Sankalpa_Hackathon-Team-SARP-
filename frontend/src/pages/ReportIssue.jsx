@@ -354,7 +354,7 @@ export default function ReportIssue() {
         <button className="back-button" onClick={() => navigate(-1)}>
           ← Back
         </button>
-        <h1 className="report-title">📢 Report a Road Issue</h1>
+        <h1 className="report-title"> Report a Road Issue</h1>
         <p className="report-subtitle">Help make our roads safer for everyone</p>
       </div>
 

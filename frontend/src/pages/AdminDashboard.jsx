@@ -38,7 +38,7 @@ function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, issues, ambulances, citizens
+  const [activeTab, setActiveTab] = useState("dashboard");
   
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -81,11 +81,57 @@ function AdminDashboard() {
     }
   };
 
+  // ============ COORDINATE EXTRACTION ============
+  const extractCoordinates = (location) => {
+    if (!location) return { lat: 27.7172, lng: 85.3240 };
+    
+    // Case 1: PostGIS POINT format "POINT(lng lat)"
+    if (typeof location === 'string') {
+      const pointMatch = location.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/i);
+      if (pointMatch) {
+        return {
+          lng: parseFloat(pointMatch[1]),
+          lat: parseFloat(pointMatch[2])
+        };
+      }
+      
+      // Case 2: Direct coordinates string "lat, lng"
+      const coordMatch = location.match(/([-\d.]+),\s*([-\d.]+)/);
+      if (coordMatch) {
+        return {
+          lat: parseFloat(coordMatch[1]),
+          lng: parseFloat(coordMatch[2])
+        };
+      }
+    }
+    
+    // Case 3: Object with coordinates
+    if (location?.coordinates) {
+      return {
+        lng: parseFloat(location.coordinates[0]),
+        lat: parseFloat(location.coordinates[1])
+      };
+    }
+    
+    // Default to Kathmandu
+    return { lat: 27.7172, lng: 85.3240 };
+  };
+
   // ============ ISSUES MANAGEMENT ============
+  const formatStatus = (status) => {
+    switch (status) {
+      case "pending": return "Open";
+      case "assigned": return "In Progress";
+      case "in_progress": return "In Progress";
+      case "resolved": return "Completed";
+      case "delayed": return "Delayed";
+      default: return status || "Open";
+    }
+  };
+
   const fetchIssues = async () => {
     setLoading(true);
     try {
-      // Use admin route for viewing issues
       const response = await fetch(`${API_BASE_URL}/admin/view-issues`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -97,20 +143,33 @@ function AdminDashboard() {
       }
 
       const data = await response.json();
+      console.log("📥 Raw issues data:", data);
       
-      const processedIssues = data.map(issue => ({
-        ...issue,
-        id: issue.id,
-        _id: issue.id,
-        lat: extractLatitude(issue.location),
-        lng: extractLongitude(issue.location),
-        priority: issue.weight || 1,
-        status: formatStatus(issue.status),
-        created_at: issue.created_at,
-        assigned_to: issue.ambulance_id,
-        votes: issue.vote_score || 0,
-        photos: issue.photos || []
-      }));
+      const processedIssues = data.map(issue => {
+        const coords = extractCoordinates(issue.location);
+        
+        return {
+          ...issue,
+          id: issue.id,
+          _id: issue.id,
+          lat: coords.lat,
+          lng: coords.lng,
+          priority: issue.weight || 1,
+          status: formatStatus(issue.status),
+          created_at: issue.created_at,
+          assigned_to: issue.ambulance_id,
+          votes: issue.vote_score || 0,
+          photos: issue.photos || [],
+          locationDisplay: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+        };
+      });
+      
+      console.log("✅ Processed issues:", processedIssues.map(i => ({ 
+        id: i.id, 
+        lat: i.lat, 
+        lng: i.lng,
+        status: i.status 
+      })));
       
       setIssues(processedIssues);
     } catch (err) {
@@ -121,55 +180,27 @@ function AdminDashboard() {
     }
   };
 
-// In your fetch functions, add safe array handling:
-
-    const fetchCitizens = async () => {
+  // ============ CITIZENS MANAGEMENT ============
+  const fetchCitizens = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/view-citizens`, {
+      const response = await fetch(`${API_BASE_URL}/admin/view-citizens`, {
         headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        if (!response.ok) {
+      });
+      
+      if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to fetch citizens");
-        }
-        
-        const data = await response.json();
-        setCitizens(Array.isArray(data) ? data : []); // ✅ Ensure array
-    } catch (err) {
-        console.error("Error fetching citizens:", err);
-        setCitizens([]); // ✅ Set empty array on error
-    }
-    };
-
-  // Update fetchAmbulanceFeedback function
-  const fetchAmbulanceFeedback = async () => {
-      try {
-          if (!ambulanceId) {
-              console.warn("No ambulance ID available");
-              return;
-          }
-
-          const response = await fetch(
-              `${API_BASE_URL}/feedback/ambulance/${ambulanceId}/feedback?limit=5`,
-              {
-                  headers: { Authorization: `Bearer ${token}` },
-              }
-          );
-
-          if (response.ok) {
-              const data = await response.json();
-              setFeedbackStats({
-                  averageRating: data.average_rating?.average_rating || 0,
-                  totalRatings: data.average_rating?.total_ratings || 0,
-                  recentFeedback: data.feedbacks || []
-              });
-          }
-      } catch (err) {
-          console.error("Error fetching feedback:", err);
       }
+      
+      const data = await response.json();
+      setCitizens(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching citizens:", err);
+      setCitizens([]);
+    }
   };
-  // Add this function to your AdminDashboard component
+
+  // ============ AMBULANCES MANAGEMENT ============
   const fetchAmbulances = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/admin/view-ambulances`, {
@@ -190,29 +221,6 @@ function AdminDashboard() {
     }
   };
 
-  // Update fetchAmbulanceRating function
-  const fetchAmbulanceRating = async () => {
-      try {
-          const response = await fetch(
-              `${API_BASE_URL}/feedback/ambulance/${ambulanceId}/rating`,
-              {
-                  headers: { Authorization: `Bearer ${token}` },
-              }
-          );
-
-          if (response.ok) {
-              const data = await response.json();
-              setFeedbackStats(prev => ({
-                  ...prev,
-                  averageRating: data.average_rating || 0,
-                  totalRatings: data.total_ratings || 0
-              }));
-          }
-      } catch (err) {
-          console.error("Error fetching rating:", err);
-      }
-  };
-
   // ============ CREATE AMBULANCE ACCOUNT ============
   const handleCreateAmbulance = async (e) => {
     e.preventDefault();
@@ -228,7 +236,6 @@ function AdminDashboard() {
     }
 
     try {
-      // This endpoint is from auth routes, not admin routes
       const response = await fetch(`${API_BASE_URL}/auth/admin/create-user`, {
         method: "POST",
         headers: {
@@ -264,7 +271,6 @@ function AdminDashboard() {
       });
       setShowCreateAmbulanceModal(false);
       
-      // Refresh ambulances list
       fetchAmbulances();
       
     } catch (err) {
@@ -278,7 +284,6 @@ function AdminDashboard() {
     if (!window.confirm(`Are you sure you want to ${currentStatus ? 'deactivate' : 'activate'} this ambulance?`)) return;
 
     try {
-      // You'll need to add this endpoint to your admin routes
       const response = await fetch(`${API_BASE_URL}/admin/ambulances/${ambulanceId}/status`, {
         method: "PUT",
         headers: {
@@ -301,35 +306,6 @@ function AdminDashboard() {
   };
 
   // ============ UTILITY FUNCTIONS ============
-  const extractLatitude = (location) => {
-    if (!location) return 27.7172;
-    if (typeof location === 'string') {
-      const match = location.match(/POINT\(([^ ]+) ([^ ]+)\)/);
-      return match ? parseFloat(match[2]) : 27.7172;
-    }
-    return 27.7172;
-  };
-
-  const extractLongitude = (location) => {
-    if (!location) return 85.3240;
-    if (typeof location === 'string') {
-      const match = location.match(/POINT\(([^ ]+) ([^ ]+)\)/);
-      return match ? parseFloat(match[1]) : 85.3240;
-    }
-    return 85.3240;
-  };
-
-  const formatStatus = (status) => {
-    switch (status) {
-      case "pending": return "Open";
-      case "assigned": return "In Progress";
-      case "in_progress": return "In Progress";
-      case "resolved": return "Completed";
-      case "delayed": return "Delayed";
-      default: return status || "Open";
-    }
-  };
-
   const getPriorityClass = (priority) => {
     if (priority >= 4) return "critical";
     if (priority >= 3) return "high";
@@ -397,12 +373,43 @@ function AdminDashboard() {
     a.click();
   };
 
+  // ============ MAP CLICK HANDLER ============
+  const handleIssueClick = (issue) => {
+    console.log("📍 Issue clicked:", {
+      id: issue.id,
+      lat: issue.lat,
+      lng: issue.lng
+    });
+    
+    if (issue.lat && issue.lng) {
+      setFocusedLocation({ 
+        lat: issue.lat, 
+        lng: issue.lng 
+      });
+    } else {
+      console.warn("⚠️ Issue has no valid coordinates:", issue);
+    }
+  };
+
+  // ============ DEBUG ISSUES ============
+  useEffect(() => {
+    if (issues.length > 0) {
+      const withCoords = issues.filter(i => i.lat && i.lng).length;
+      console.log(`📍 Issues with coordinates: ${withCoords}/${issues.length}`);
+    }
+  }, [issues]);
+
   // ============ INITIAL FETCH ============
   useEffect(() => {
-    fetchDashboardStats();
-    fetchIssues();
-    fetchAmbulances();
-    fetchCitizens();
+    const fetchAll = async () => {
+      await Promise.all([
+        fetchDashboardStats(),
+        fetchIssues(),
+        fetchAmbulances(),
+        fetchCitizens()
+      ]);
+    };
+    fetchAll();
   }, []);
 
   const filteredIssues = getFilteredIssues();
@@ -531,9 +538,10 @@ function AdminDashboard() {
               <h2 className="section-title">📍 Issue Locations</h2>
               <div className="map-container">
                 <MapComponent 
-                  issues={filteredIssues.slice(0, 50)} 
+                  issues={filteredIssues} 
                   focusedLocation={focusedLocation}
                   height="400px"
+                  onIssueClick={handleIssueClick}
                 />
               </div>
             </div>
@@ -551,7 +559,11 @@ function AdminDashboard() {
               </div>
               <div className="recent-issues-grid">
                 {filteredIssues.slice(0, 5).map((issue) => (
-                  <div key={issue.id} className="recent-issue-card">
+                  <div 
+                    key={issue.id} 
+                    className="recent-issue-card clickable"
+                    onClick={() => handleIssueClick(issue)}
+                  >
                     <div className="recent-issue-header">
                       <span className={`priority-badge priority-${getPriorityClass(issue.priority)}`}>
                         P{issue.priority || 1}
@@ -652,8 +664,9 @@ function AdminDashboard() {
                       filteredIssues.map((issue) => (
                         <tr 
                           key={issue.id} 
-                          onClick={() => setFocusedLocation({ lat: issue.lat, lng: issue.lng })}
+                          onClick={() => handleIssueClick(issue)}
                           className="clickable-row"
+                          style={{ cursor: 'pointer' }}
                         >
                           <td className="issue-id">#{issue.id.substring(0, 6)}</td>
                           <td className="issue-description">
@@ -661,7 +674,7 @@ function AdminDashboard() {
                             {issue.description?.length > 50 ? '...' : ''}
                           </td>
                           <td className="issue-location">
-                            {getLocationPreview(issue.location, 20)}
+                            {issue.locationDisplay || getLocationPreview(issue.location, 20)}
                           </td>
                           <td>
                             <span className={`priority-badge priority-${getPriorityClass(issue.priority)}`}>
@@ -909,26 +922,13 @@ function AdminDashboard() {
                       required
                     />
                   </div>
-
-                  <div className="form-group">
-                    <label>Vehicle Type</label>
-                    <select
-                      value={newAmbulance.vehicle_type}
-                      onChange={(e) => setNewAmbulance({...newAmbulance, vehicle_type: e.target.value})}
-                    >
-                      <option value="basic">Basic Life Support</option>
-                      <option value="advanced">Advanced Life Support</option>
-                      <option value="icu">ICU Ambulance</option>
-                      <option value="patient">Patient Transport</option>
-                    </select>
-                  </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Hospital/Station (Optional)</label>
+                  <label>StandBy Station (Optional)</label>
                   <input
                     type="text"
-                    placeholder="Associated hospital or station"
+                    placeholder="Associated station"
                     value={newAmbulance.hospital}
                     onChange={(e) => setNewAmbulance({...newAmbulance, hospital: e.target.value})}
                   />

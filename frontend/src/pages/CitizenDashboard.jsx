@@ -23,10 +23,13 @@ export default function CitizenDashboard() {
   const [selectedIssueForFeedback, setSelectedIssueForFeedback] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   
+  // Resolution photo modal
+  const [selectedResolutionPhoto, setSelectedResolutionPhoto] = useState(null);
+  const [showResolutionModal, setShowResolutionModal] = useState(false);
+  
   // Infinite scroll
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const observerRef = useRef();
   const lastIssueRef = useRef();
 
   const navigate = useNavigate();
@@ -39,6 +42,16 @@ export default function CitizenDashboard() {
     message: "",
     type: "success"
   });
+
+  // ============ RESOLUTION PHOTO FUNCTIONS ============
+
+  // Handle resolution photo click
+  const handleResolutionPhotoClick = (photos) => {
+    if (photos && photos.length > 0) {
+      setSelectedResolutionPhoto(photos);
+      setShowResolutionModal(true);
+    }
+  };
 
   // ============ FEEDBACK FUNCTIONS ============
 
@@ -132,6 +145,30 @@ export default function CitizenDashboard() {
 
   // ============ ISSUE FUNCTIONS ============
 
+  // Format location for display
+  const formatLocation = (location, lat, lng) => {
+    // If location string exists and is not empty
+    if (location && location.trim() !== "" && location !== "null" && location !== "undefined") {
+      return getLocationPreview(location, 40);
+    }
+    
+    // If we have coordinates but no location string
+    if (lat && lng) {
+      return `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
+    }
+    
+    // No location data available
+    return "📍 Location not available";
+  };
+
+  // Check if location is available
+  const isLocationAvailable = (issue) => {
+    return (
+      (issue.location && issue.location.trim() !== "" && issue.location !== "null" && issue.location !== "undefined") ||
+      (issue.latitude && issue.longitude)
+    );
+  };
+
   // Fetch issues with pagination
   const fetchIssues = async (pageNum = 1, append = false) => {
     try {
@@ -153,22 +190,41 @@ export default function CitizenDashboard() {
         throw new Error(data.error || "Failed to fetch issues");
       }
 
-      // Merge issues with user votes and ensure photos array exists
-      const issuesWithVotes = data.map(issue => ({
-        ...issue,
-        userVote: userVotes[issue.id] || 0,
-        vote_score: issue.vote_score || 0,
-        total_votes: issue.total_votes || 0,
-        photos: issue.photos || [],
-        photo_count: issue.photo_count || 0,
-        first_photo: issue.first_photo || null,
-        has_feedback: issue.has_feedback || false // Track if feedback already given
-      }));
+      // Process issues
+      const issuesWithDetails = data.map((issue) => {
+        // Check for resolution photos
+        let resolutionPhotos = [];
+        if (issue.resolution_photos && Array.isArray(issue.resolution_photos)) {
+          resolutionPhotos = issue.resolution_photos;
+        } else if (issue.resolutionPhoto) {
+          resolutionPhotos = [issue.resolutionPhoto];
+        } else if (issue.after_photos && Array.isArray(issue.after_photos)) {
+          resolutionPhotos = issue.after_photos;
+        } else if (issue.resolved_photos && Array.isArray(issue.resolved_photos)) {
+          resolutionPhotos = issue.resolved_photos;
+        }
+        
+        return {
+          ...issue,
+          userVote: userVotes[issue.id] || 0,
+          vote_score: issue.vote_score || 0,
+          total_votes: issue.total_votes || 0,
+          photos: issue.photos || [],
+          photo_count: issue.photo_count || 0,
+          first_photo: issue.first_photo || null,
+          has_feedback: issue.has_feedback || false,
+          resolution_photos: resolutionPhotos,
+          // Ensure location fields exist
+          location: issue.location || null,
+          latitude: issue.latitude || null,
+          longitude: issue.longitude || null
+        };
+      });
 
       if (append) {
-        setIssues(prev => [...prev, ...issuesWithVotes]);
+        setIssues(prev => [...prev, ...issuesWithDetails]);
       } else {
-        setIssues(issuesWithVotes);
+        setIssues(issuesWithDetails);
       }
 
       setHasMore(data.length === 10);
@@ -371,12 +427,7 @@ export default function CitizenDashboard() {
       <div className="dashboard-content">
         <div className="content-header">
           <h2 className="section-title">📋 Live Issues Feed</h2>
-          <button 
-            className="report-button"
-            onClick={() => navigate("/report")}
-          >
-            + Report New Issue
-          </button>
+       
         </div>
 
         {error && <div className="dashboard-error">{error}</div>}
@@ -392,11 +443,14 @@ export default function CitizenDashboard() {
             <>
               {issues.map((issue, index) => {
                 const userVote = issue.userVote || 0;
+                const hasResolutionPhotos = issue.resolution_photos && 
+                                          issue.resolution_photos.length > 0;
+                const locationAvailable = isLocationAvailable(issue);
                 
                 return (
                   <div
                     key={issue.id}
-                    className="issue-card"
+                    className={`issue-card ${issue.status === "resolved" ? "resolved-issue" : ""}`}
                     ref={index === issues.length - 1 ? lastIssueRef : null}
                   >
                     <div className="issue-header">
@@ -413,9 +467,12 @@ export default function CitizenDashboard() {
                     </div>
 
                     <div className="issue-body">
-                      {/* Photo Gallery */}
+                      {/* Original Issue Photos */}
                       {issue.photos && issue.photos.length > 0 ? (
                         <div className="issue-photos">
+                          <div className="photo-section-label">
+                            <span>📸 Before</span>
+                          </div>
                           <div className="photo-gallery">
                             {issue.photos.slice(0, 4).map((photo, photoIndex) => (
                               <div 
@@ -440,9 +497,6 @@ export default function CitizenDashboard() {
                               </div>
                             )}
                           </div>
-                          <span className="photo-count">
-                            📸 {issue.photo_count || issue.photos.length} photo{issue.photos.length !== 1 ? 's' : ''}
-                          </span>
                         </div>
                       ) : (
                         <div className="no-photo-placeholder">
@@ -451,15 +505,58 @@ export default function CitizenDashboard() {
                         </div>
                       )}
 
+                      {/* Resolution Photos for Resolved Issues */}
+                      {issue.status === "resolved" && hasResolutionPhotos && (
+                        <div className="resolution-photos">
+                          <div className="photo-section-label resolution-label">
+                            <span>✅ After</span>
+                          </div>
+                          <div className="photo-gallery">
+                            {issue.resolution_photos.slice(0, 4).map((photo, photoIndex) => (
+                              <div 
+                                key={photoIndex} 
+                                className="photo-thumbnail resolution-thumbnail"
+                                onClick={() => openImage(photo)}
+                              >
+                                <img 
+                                  src={photo} 
+                                  alt={`Resolution ${issue.id.substring(0, 6)}`} 
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.parentElement.classList.add('broken-image');
+                                  }}
+                                />
+                              </div>
+                            ))}
+                            {issue.resolution_photos.length > 4 && (
+                              <div className="photo-more" onClick={() => openImage(issue.resolution_photos[4])}>
+                                +{issue.resolution_photos.length - 4}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       <p className="issue-description">
                         {issue.description || "No description provided"}
                       </p>
                       
-                      {issue.location && (
-                        <div className="issue-location">
-                          📍 {getLocationPreview(issue.location, 30)}
-                        </div>
-                      )}
+                      {/* Location Display with Not Available Status */}
+                      <div className={`issue-location ${!locationAvailable ? 'location-not-available' : ''}`}>
+                        <span className="location-icon">📍</span>
+                        <span className="location-text">
+                          {locationAvailable 
+                            ? formatLocation(issue.location, issue.latitude, issue.longitude)
+                            : <span className="not-available">Location not available</span>
+                          }
+                        </span>
+                        {issue.latitude && issue.longitude && locationAvailable && (
+                          <span className="location-coords-hint">
+                            ({parseFloat(issue.latitude).toFixed(4)}, {parseFloat(issue.longitude).toFixed(4)})
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="issue-footer">
@@ -469,20 +566,20 @@ export default function CitizenDashboard() {
                           onClick={() => handleVote(issue.id, 1)}
                           disabled={loading}
                         >
-                          👍 <span className="vote-count">+1</span>
+                          👍 <span className="vote-count">Upvote</span>
                         </button>
                         <button
                           className={`vote-button downvote ${userVote === -1 ? 'active' : ''}`}
                           onClick={() => handleVote(issue.id, -1)}
                           disabled={loading}
                         >
-                          👎 <span className="vote-count">-1</span>
+                          👎 <span className="vote-count">Downvote</span>
                         </button>
                         <span className={`vote-score ${issue.vote_score > 0 ? 'positive' : issue.vote_score < 0 ? 'negative' : 'zero'}`}>
-                          Score: {issue.vote_score || 0}
+                          {issue.vote_score || 0}
                         </span>
                         <span className="total-votes">
-                          ({issue.total_votes || 0} vote{issue.total_votes !== 1 ? 's' : ''})
+                          ({issue.total_votes || 0})
                         </span>
                       </div>
                       
@@ -491,6 +588,16 @@ export default function CitizenDashboard() {
                           <span className="assigned-info">
                             🚑 Assigned
                           </span>
+                        )}
+                        
+                        {/* View Resolution Photos Button */}
+                        {issue.status === "resolved" && hasResolutionPhotos && (
+                          <button
+                            className="view-resolution-btn"
+                            onClick={() => handleResolutionPhotoClick(issue.resolution_photos)}
+                          >
+                            📸 View After ({issue.resolution_photos.length})
+                          </button>
                         )}
                         
                         {/* Feedback Button for Resolved Issues */}
@@ -521,8 +628,6 @@ export default function CitizenDashboard() {
                 </div>
               )}
 
-
-
               {!loading && issues.length === 0 && (
                 <div className="empty-state">
                   <div className="empty-icon">📭</div>
@@ -539,12 +644,39 @@ export default function CitizenDashboard() {
             </>
           )}
         </div>
-                      {!hasMore && issues.length > 0 && (
-                <div className="end-message">
-                  <span>🎉 You've seen all issues</span>
-                </div>
-              )}
+        
+        {!hasMore && issues.length > 0 && (
+          <div className="end-message">
+            <span>🎉 You've seen all issues</span>
+          </div>
+        )}
       </div>
+
+      {/* Resolution Photo Modal */}
+      {showResolutionModal && selectedResolutionPhoto && (
+        <div className="resolution-modal-overlay" onClick={() => setShowResolutionModal(false)}>
+          <div className="resolution-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="resolution-modal-header">
+              <h3>✅ After Resolution Photos</h3>
+              <button className="modal-close-btn" onClick={() => setShowResolutionModal(false)}>×</button>
+            </div>
+            <div className="resolution-modal-body">
+              <div className="resolution-modal-gallery">
+                {selectedResolutionPhoto.map((photo, index) => (
+                  <div 
+                    key={index} 
+                    className="resolution-modal-item"
+                    onClick={() => openImage(photo)}
+                  >
+                    <img src={photo} alt={`Resolution ${index + 1}`} />
+                    <span className="resolution-index">{index + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feedback Modal */}
       <CitizenFeedbackModal
