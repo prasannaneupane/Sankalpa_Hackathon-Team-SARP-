@@ -22,21 +22,19 @@ export default function Home() {
   }, []);
 
   const fetchStats = async () => {
+    console.log("Fetching dashboard stats...");
     try {
-      const response = await fetch(`${API_BASE_URL}/issues/active`);
+      const response = await fetch(`${API_BASE_URL}/issues/dashboard`);
       const data = await response.json();
-
-      if (Array.isArray(data)) {
-        const completed = data.filter((issue) => issue.status === "resolved").length;
-        const ongoing = data.filter((issue) => issue.status === "in_progress").length;
-        const delayed = data.filter((issue) => issue.status === "delayed").length;
-        const pending = data.filter((issue) => issue.status === "pending").length;
-
+      console.log("Raw stats data:", data);
+      
+      // Check if data has the stats property (backend returns {stats: {...}, hotSpots: [...]})
+      if (data && data.stats) {
         setStats({
-          completed,
-          ongoing: ongoing + pending,
-          delayed,
-          total: data.length,
+          completed: data.stats.resolved_count || 0,
+          ongoing: (data.stats.in_progress_count || 0) + (data.stats.pending_count || 0),
+          delayed: data.stats.delayed_count || 0,
+          total: data.stats.total_issues || 0,
         });
       }
     } catch (err) {
@@ -46,11 +44,12 @@ export default function Home() {
 
   const fetchRecentIssues = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/issues/active`);
+      const response = await fetch(`${API_BASE_URL}/issues/dashboard`);
       const data = await response.json();
-
-      if (Array.isArray(data)) {
-        setRecentIssues(data.slice(0, 5));
+      
+      // Check if data has hotSpots array
+      if (data && Array.isArray(data.hotSpots)) {
+        setRecentIssues(data.hotSpots.slice(0, 5));
       }
     } catch (err) {
       console.error("Error fetching recent issues:", err);
