@@ -9,7 +9,7 @@
 .hero {
   position: relative;
   height: 500px;
-  background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920');
+  background-image: url('D:\TEAM-SARP\frontend\public\bg.png');
   background-size: cover;
   background-position: center;
   display: flex;

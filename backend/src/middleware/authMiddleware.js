@@ -1,42 +1,64 @@
+// middleware/authMiddleware.js
+const jwt = require('jsonwebtoken');
 const supabase = require('../config/db');
 
-const jwt = require('jsonwebtoken');
-
-const authenticate = (req, res, next) => {
-    // 1. Get token from header (Authorization: Bearer <token>)
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ message: "No token provided. Access denied." });
-    }
-
+exports.authenticate = async (req, res, next) => {
     try {
-        // 2. Verify the token using your secret
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        
+        // Verify JWT using your secret
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // 3. Attach the payload (id, role) to the request object
-        req.user = decoded; 
+        // The token should contain id and role from your loginUser method
+        console.log("✅ Token verified:", { 
+            id: decoded.id, 
+            role: decoded.role,
+            email: decoded.email 
+        });
+        
+        // Set user from token - NO DATABASE QUERY NEEDED!
+        // The token already contains the role information
+        req.user = {
+            id: decoded.id,
+            role: decoded.role,
+            email: decoded.email
+        };
         
         next();
-    } catch (err) {
-        return res.status(403).json({ message: "Invalid or expired token." });
+    } catch (error) {
+        console.error('❌ Auth error:', error.message);
+        return res.status(401).json({ error: 'Invalid token' });
     }
 };
 
-/**
- * Role-Specific Authorization
- * Use this to restrict specific routes to 'admin' or 'ambulance' only.
- */
-const authorizeRole = (allowedRole) => {
+exports.authorizeRole = (allowedRoles) => {
     return (req, res, next) => {
-        if (!req.user || req.user.role !== allowedRole) {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+        
+        console.log("🔒 Authorize role check:", {
+            userRole: req.user.role,
+            allowedRoles: roles,
+            path: req.path
+        });
+        
+        if (!roles.includes(req.user.role)) {
             return res.status(403).json({ 
-                message: `Forbidden: This action requires the ${allowedRole} role.` 
+                error: 'Forbidden: Insufficient permissions',
+                required_role: roles,
+                current_role: req.user.role
             });
         }
+
         next();
     };
 };
-
-module.exports = { authenticate, authorizeRole };

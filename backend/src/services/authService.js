@@ -124,12 +124,12 @@ class AuthService {
         );
 
         return {
-            token: customToken, // Return this new token to the frontend
+            token: customToken, // ✅ This is correct
             user: {
                 id: data.user.id,
                 email: data.user.email,
                 full_name: profile?.full_name,
-                role: profile?.role
+                role: profile?.role  // ✅ Role is here
             }
         };
     }

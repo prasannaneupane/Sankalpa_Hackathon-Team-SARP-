@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config";
 import MapComponent from "../components/MapComponent";
 import Navbar from "../components/Navbar";
+import { getLocationPreview } from '../utils/locationUtils';
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
@@ -141,24 +142,76 @@ function AdminDashboard() {
     }
     };
 
-    const fetchAmbulances = async () => {
+  // Update fetchAmbulanceFeedback function
+  const fetchAmbulanceFeedback = async () => {
+      try {
+          if (!ambulanceId) {
+              console.warn("No ambulance ID available");
+              return;
+          }
+
+          const response = await fetch(
+              `${API_BASE_URL}/feedback/ambulance/${ambulanceId}/feedback?limit=5`,
+              {
+                  headers: { Authorization: `Bearer ${token}` },
+              }
+          );
+
+          if (response.ok) {
+              const data = await response.json();
+              setFeedbackStats({
+                  averageRating: data.average_rating?.average_rating || 0,
+                  totalRatings: data.average_rating?.total_ratings || 0,
+                  recentFeedback: data.feedbacks || []
+              });
+          }
+      } catch (err) {
+          console.error("Error fetching feedback:", err);
+      }
+  };
+  // Add this function to your AdminDashboard component
+  const fetchAmbulances = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/view-ambulances`, {
-        headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to fetch ambulances");
-        }
-        
-        const data = await response.json();
-        setAmbulances(Array.isArray(data) ? data : []); // ✅ Ensure array
+      const response = await fetch(`${API_BASE_URL}/admin/view-ambulances`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch ambulances");
+      }
+
+      const data = await response.json();
+      setAmbulances(Array.isArray(data) ? data : []);
     } catch (err) {
-        console.error("Error fetching ambulances:", err);
-        setAmbulances([]); // ✅ Set empty array on error
+      console.error("Error fetching ambulances:", err);
+      setError("Failed to load ambulances");
     }
-    };
+  };
+
+  // Update fetchAmbulanceRating function
+  const fetchAmbulanceRating = async () => {
+      try {
+          const response = await fetch(
+              `${API_BASE_URL}/feedback/ambulance/${ambulanceId}/rating`,
+              {
+                  headers: { Authorization: `Bearer ${token}` },
+              }
+          );
+
+          if (response.ok) {
+              const data = await response.json();
+              setFeedbackStats(prev => ({
+                  ...prev,
+                  averageRating: data.average_rating || 0,
+                  totalRatings: data.total_ratings || 0
+              }));
+          }
+      } catch (err) {
+          console.error("Error fetching rating:", err);
+      }
+  };
 
   // ============ CREATE AMBULANCE ACCOUNT ============
   const handleCreateAmbulance = async (e) => {
@@ -608,7 +661,7 @@ function AdminDashboard() {
                             {issue.description?.length > 50 ? '...' : ''}
                           </td>
                           <td className="issue-location">
-                            {issue.lat?.toFixed(4)}, {issue.lng?.toFixed(4)}
+                            {getLocationPreview(issue.location, 20)}
                           </td>
                           <td>
                             <span className={`priority-badge priority-${getPriorityClass(issue.priority)}`}>

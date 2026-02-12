@@ -615,3 +615,207 @@
     transform: translateX(0) translateY(0);
   }
 }
+/* Add to AmbulanceDashboard.css */
+
+/* Rating Summary Card */
+.rating-summary-card {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: white;
+  padding: 20px 30px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 200px;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.rating-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.rating-icon {
+  font-size: 20px;
+}
+
+.rating-label {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.rating-value {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.rating-max {
+  font-size: 18px;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-left: 4px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.rating-stars .star {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 20px;
+}
+
+.rating-stars .star.filled {
+  color: #fbbf24;
+}
+
+.rating-count {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Feedback Section */
+.feedback-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.view-all-btn {
+  background: none;
+  border: none;
+  color: #DC143C;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+  background: #fff0f3;
+}
+
+.feedback-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.feedback-card {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.3s ease;
+}
+
+.feedback-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.feedback-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.stars .star {
+  color: #cbd5e1;
+  font-size: 16px;
+}
+
+.stars .star.filled {
+  color: #fbbf24;
+}
+
+.feedback-time {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.feedback-comment {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1e293b;
+  margin-bottom: 16px;
+  font-style: italic;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.feedback-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.feedback-issue {
+  color: #64748b;
+  font-family: monospace;
+}
+
+.verified-badge {
+  background: #dcfce7;
+  color: #16a34a;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ambulance-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .rating-summary-card {
+    width: 100%;
+  }
+  
+  .feedback-grid {
+    grid-template-columns: 1fr;
+  }
+}

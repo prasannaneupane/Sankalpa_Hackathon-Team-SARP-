@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config";
 import Navbar from "../components/Navbar";
 import MapComponent from "../components/MapComponent";
+import { formatLocation, extractCoordinates } from '../utils/locationUtils';
 import "./MissionView.css";
 
 export default function MissionView() {
@@ -250,20 +251,21 @@ export default function MissionView() {
             <div className="location-section">
               <h3>📍 Location</h3>
               <p className="location-address">
-                {typeof issue.location === 'string' 
-                  ? issue.location 
-                  : 'Coordinates available'}
+                {formatLocation(issue.location)}
               </p>
-              {issue.lat && issue.lng && (
-                <div className="coordinates">
-                  <span className="coordinate-badge">
-                    Lat: {issue.lat.toFixed(6)}
-                  </span>
-                  <span className="coordinate-badge">
-                    Lng: {issue.lng.toFixed(6)}
-                  </span>
-                </div>
-              )}
+              {(() => {
+                const coords = extractCoordinates(issue.location);
+                return (
+                  <div className="coordinates">
+                    <span className="coordinate-badge">
+                      Lat: {coords.lat.toFixed(6)}
+                    </span>
+                    <span className="coordinate-badge">
+                      Lng: {coords.lng.toFixed(6)}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="meta-section">

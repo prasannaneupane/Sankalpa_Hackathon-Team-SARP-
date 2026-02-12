@@ -511,6 +511,387 @@ class IssueServiceClass {
             throw error;
         }
     }
+    // ============ FEEDBACK SYSTEM ============
+
+    /**
+     * Submit citizen rating for resolved issue
+     */
+    async submitFeedback(issueId, citizenId, rating, afterPhotoUrl) {
+        try {
+            console.log("========== FEEDBACK SUBMISSION DEBUG ==========");
+            console.log("1. Issue ID:", issueId);
+            console.log("2. Citizen ID:", citizenId);
+            
+            // Validate rating (1-5)
+            if (!rating || rating < 1 || rating > 5) {
+                throw new Error('Rating must be between 1 and 5');
+            }
+
+            // Check if issue exists and is resolved
+            const { data: issue, error: issueError } = await supabase
+                .from('issues')
+                .select('id, ambulance_id, status')
+                .eq('id', issueId)
+                .single();
+
+            if (issueError) {
+                console.error("❌ Issue fetch error:", issueError);
+                throw issueError;
+            }
+            
+            console.log("3. Issue data:", issue);
+            console.log("4. Ambulance ID from issue:", issue.ambulance_id);
+            
+            if (issue.status !== 'resolved') {
+                throw new Error('Feedback can only be submitted for resolved issues');
+            }
+
+            if (!issue.ambulance_id) {
+                throw new Error('No ambulance was assigned to this issue - cannot submit feedback');
+            }
+
+            // Check if feedback already exists
+            const { data: existingFeedback } = await supabase
+                .from('feedback')
+                .select('id')
+                .eq('issue_id', issueId)
+                .eq('citizen_id', citizenId)
+                .maybeSingle();
+
+            if (existingFeedback) {
+                throw new Error('You have already submitted feedback for this issue');
+            }
+
+            // IMPORTANT: Include ambulance_id in the insert!
+            const feedbackData = {
+                issue_id: issueId,
+                citizen_id: citizenId,
+                ambulance_id: issue.ambulance_id, // ← THIS MUST BE POPULATED
+                after_photo_url: afterPhotoUrl,
+                citizen_rating: rating,
+                rdo_verified: false,
+                created_at: new Date()
+            };
+            
+            console.log("5. Feedback data to insert:", feedbackData);
+
+            const { data: feedback, error: feedbackError } = await supabase
+                .from('feedback')
+                .insert([feedbackData])
+                .select()
+                .single();
+
+            if (feedbackError) {
+                console.error("❌ Feedback insert error:", feedbackError);
+                throw feedbackError;
+            }
+
+            console.log("6. Feedback inserted successfully:", feedback);
+            console.log("================================================");
+
+            // Update ambulance driver's average rating
+            await this.updateAmbulanceRating(issue.ambulance_id);
+
+            return {
+                success: true,
+                message: 'Feedback submitted successfully',
+                feedback
+            };
+        } catch (error) {
+            console.error('❌ submitFeedback error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update ambulance driver's average rating
+     */
+    async updateAmbulanceRating(ambulanceId) {
+        try {
+            // Get all feedback ratings for this ambulance
+            const { data: feedbacks, error: feedbackError } = await supabase
+                .from('feedback')
+                .select(`
+                    citizen_rating,
+                    issues!inner (
+                        ambulance_id
+                    )
+                `)
+                .eq('issues.ambulance_id', ambulanceId);
+
+            if (feedbackError) throw feedbackError;
+
+            const validRatings = feedbacks
+                .map(f => f.citizen_rating)
+                .filter(r => r !== null && r >= 1 && r <= 5);
+
+            const totalRatings = validRatings.length;
+            let averageRating = 0;
+
+            if (totalRatings > 0) {
+                const sumRatings = validRatings.reduce((sum, r) => sum + r, 0);
+                averageRating = Math.round((sumRatings / totalRatings) * 10) / 10;
+            }
+
+            // Update profile
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                    average_rating: averageRating,
+                    total_ratings: totalRatings
+                })
+                .eq('id', ambulanceId)
+                .eq('role', 'ambulance');
+
+            if (updateError) throw updateError;
+
+            return { averageRating, totalRatings };
+        } catch (error) {
+            console.error('❌ updateAmbulanceRating error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * RDO verify feedback (mark as official verification)
+     */
+    async verifyFeedback(feedbackId, rdoId) {
+        try {
+            const { data, error } = await supabase
+                .from('feedback')
+                .update({ 
+                    rdo_verified: true,
+                    verified_at: new Date(),
+                    verified_by: rdoId
+                })
+                .eq('id', feedbackId)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            return {
+                success: true,
+                message: 'Feedback verified successfully',
+                feedback: data
+            };
+        } catch (error) {
+            console.error('❌ verifyFeedback error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get feedback for a specific issue
+     */
+    async getIssueFeedback(issueId) {
+        try {
+            const { data, error } = await supabase
+                .from('feedback')
+                .select(`
+                    *,
+                    citizen:citizen_id (
+                        id,
+                        full_name
+                    )
+                `)
+                .eq('issue_id', issueId)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('❌ getIssueFeedback error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get all feedback for an ambulance driver - SIMPLIFIED VERSION
+     */
+    async getAmbulanceFeedback(ambulanceId, page = 1, limit = 10) {
+        try {
+            console.log("📊 Fetching ambulance feedback for:", ambulanceId);
+            
+            const from = (page - 1) * limit;
+            const to = from + limit - 1;
+
+            // SUPER SIMPLE - just get the feedback data, no joins
+            const { data, error, count } = await supabase
+                .from('feedback')
+                .select('*', { count: 'exact' })
+                .eq('ambulance_id', ambulanceId)
+                .order('created_at', { ascending: false })
+                .range(from, to);
+
+            if (error) {
+                console.error('❌ Supabase error in getAmbulanceFeedback:', error);
+                throw error;
+            }
+
+            console.log(`✅ Found ${data?.length || 0} feedback entries`);
+
+            return {
+                feedbacks: data || [],
+                total: count || 0,
+                page,
+                limit
+            };
+        } catch (error) {
+            console.error('❌ getAmbulanceFeedback error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get ambulance driver's average rating - SIMPLIFIED VERSION
+     */
+    async getAmbulanceAverageRating(ambulanceId) {
+        try {
+            console.log("⭐ Fetching average rating for:", ambulanceId);
+            
+            const { data, error } = await supabase
+                .from('feedback')
+                .select('citizen_rating')
+                .eq('ambulance_id', ambulanceId);
+
+            if (error) {
+                console.error('❌ Supabase error in getAmbulanceAverageRating:', error);
+                throw error;
+            }
+
+            const ratings = data.map(f => f.citizen_rating).filter(r => r !== null);
+            const totalRatings = ratings.length;
+            let averageRating = 0;
+
+            if (totalRatings > 0) {
+                const sumRatings = ratings.reduce((sum, r) => sum + r, 0);
+                averageRating = Math.round((sumRatings / totalRatings) * 10) / 10;
+            }
+
+            console.log(`✅ Average rating: ${averageRating} from ${totalRatings} ratings`);
+
+            return {
+                average_rating: averageRating,
+                total_ratings: totalRatings
+            };
+        } catch (error) {
+            console.error('❌ getAmbulanceAverageRating error:', error);
+            return { average_rating: 0, total_ratings: 0 };
+        }
+    }
+    /**
+     * Check if user can submit feedback for an issue
+     */
+    async canSubmitFeedback(issueId, citizenId) {
+        try {
+            const { data: issue, error: issueError } = await supabase
+                .from('issues')
+                .select('status, ambulance_id, resolution_photo')
+                .eq('id', issueId)
+                .single();
+
+            if (issueError) throw issueError;
+
+            if (issue.status !== 'resolved') {
+                return { 
+                    canSubmit: false, 
+                    reason: 'Issue not resolved yet',
+                    requires: 'resolved_status'
+                };
+            }
+
+            if (!issue.resolution_photo) {
+                return { 
+                    canSubmit: false, 
+                    reason: 'Resolution photo not available',
+                    requires: 'resolution_photo'
+                };
+            }
+
+            if (!issue.ambulance_id) {
+                return {
+                    canSubmit: false,
+                    reason: 'No ambulance was assigned to this issue',
+                    requires: 'ambulance_assigned'
+                };
+            }
+
+            const { data: existingFeedback } = await supabase
+                .from('feedback')
+                .select('id')
+                .eq('issue_id', issueId)
+                .eq('citizen_id', citizenId)
+                .maybeSingle();
+
+            if (existingFeedback) {
+                return { 
+                    canSubmit: false, 
+                    reason: 'You have already submitted feedback for this issue',
+                    requires: 'already_submitted'
+                };
+            }
+
+            return { 
+                canSubmit: true, 
+                ambulance_id: issue.ambulance_id, // ← Return this
+                resolution_photo: issue.resolution_photo
+            };
+        } catch (error) {
+            console.error('❌ canSubmitFeedback error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get unverified feedback for RDO verification
+     */
+    async getUnverifiedFeedback(page = 1, limit = 20) {
+        try {
+            const from = (page - 1) * limit;
+            const to = from + limit - 1;
+
+            const { data, error, count } = await supabase
+                .from('feedback')
+                .select(`
+                    *,
+                    issue:issue_id (
+                        id,
+                        description,
+                        location,
+                        created_at,
+                        resolved_at,
+                        resolution_photo
+                    ),
+                    citizen:citizen_id (
+                        id,
+                        full_name
+                    ),
+                    ambulance:issues!inner (
+                        ambulance_id,
+                        profiles!inner (
+                            full_name,
+                            vehicle_plate
+                        )
+                    )
+                `, { count: 'exact' })
+                .eq('rdo_verified', false)
+                .order('created_at', { ascending: true })
+                .range(from, to);
+
+            if (error) throw error;
+
+            return {
+                feedbacks: data,
+                total: count,
+                page,
+                limit
+            };
+        } catch (error) {
+            console.error('❌ getUnverifiedFeedback error:', error);
+            throw error;
+        }
+    }
 }
 
 // Create instance
