@@ -3,19 +3,22 @@
 .home-page {
   min-height: 100vh;
   background-color: #f9f9f9;
+  border-radius: 20px;
 }
 
 /* Hero Section */
 .hero {
   position: relative;
   height: 500px;
-  background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920');
+  background-image: url('/Users/prasanna/Codes/SARP-hackathon/TEAM-SARP/frontend/public/bg.png'); 
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
-   border-radius: 20px;
+  top:5vh;
+  border-radius: 50px;
+
 }
 
 .hero-overlay {
@@ -25,7 +28,7 @@
   right: 0;
   bottom: 0;
   background-color: #a6b1e1;
-  border-radius: 20px;
+
 }
 
 .hero-content {
@@ -34,7 +37,8 @@
   text-align: center;
   color: #fff;
   padding: 20px;
- 
+  border-radius: 20px;
+  font-family: "Poppins";
 }
 
 .hero-title {
@@ -43,6 +47,7 @@
   margin: 0;
   margin-bottom: 15px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: "Poppins";
 }
 
 .hero-subtitle {
@@ -50,19 +55,21 @@
   margin: 0;
   margin-bottom: 30px;
   opacity: 0.9;
+
 }
 
 .hero-buttons {
   display: flex;
   gap: 15px;
   justify-content: center;
+  font-family: "Poppins";
 }
 
 .primary-button {
   padding: 15px 30px;
-  background-color: #fff;
-  color:#a6b1e1;
-  border: none;
+  background-color: transparent;
+  color:#fff;
+  border: 2px solid #fff;
   border-radius: 8px;
   font-size: 16px;
   font-weight: bold;
@@ -102,11 +109,12 @@
   max-width: 1000px;
   margin: 0 auto;
   text-align: center;
+  font-family: "Poppins";
 }
 
 .about-title {
   font-size: 32px;
-  color: #a6b1e1;
+  color: black;
   margin-bottom: 20px;
 }
 
@@ -178,6 +186,7 @@
   flex-wrap: wrap;
   max-width: 1000px;
   margin: 0 auto;
+ 
 }
 
 .stat-card {
@@ -223,7 +232,7 @@
 
 .stat-label {
   font-size: 14px;
-  color: #666;
+  color: #010101 !important;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -232,8 +241,8 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  font-size: 24px;
-  opacity: 0.5;
+  font-size: 39px;
+  opacity: 3.0;
 }
 
 /* Recent Issues Section */
@@ -241,6 +250,7 @@
   padding: 60px 20px;
   background-color: #fff;
   text-align: center;
+  font-family: "Poppins";
 }
 
 .loading-text {
@@ -319,6 +329,7 @@
 .issue-location {
   font-size: 12px;
   color: #666;
+  font-family: "Poppins";
 }
 
 .no-issues-text {
@@ -419,7 +430,10 @@
   background-color: #333;
   color: #fff;
   padding: 60px 20px 20px 20px;
-}
+  font-family: "Poppins";
+  border-radius: 16px;
+} 
+  
 
 .footer-content {
   display: flex;

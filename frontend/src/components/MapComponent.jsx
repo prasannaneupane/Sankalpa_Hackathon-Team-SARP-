@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -17,8 +17,9 @@ function MapController({ center }) {
   const map = useMap();
   
   useEffect(() => {
-    if (center && center.lat && center.lng) {
-      map.setView([center.lat, center.lng], 15, {
+    if (center && center.length === 2) {
+      console.log("🎯 Moving map to:", center);
+      map.setView(center, 15, {
         animate: true,
         duration: 0.5
       });
@@ -31,13 +32,12 @@ function MapController({ center }) {
 // Custom marker icon based on status
 const getMarkerIcon = (status, priority = 1) => {
   let iconUrl = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png";
-  let shadowUrl = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png";
   
   // Color based on status
-  if (status === "Open" || status === "pending" || status === "assigned") {
-    iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png";
-  } else if (status === "In Progress" || status === "in_progress") {
+  if (status === "Open" || status === "pending") {
     iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png";
+  } else if (status === "In Progress" || status === "assigned" || status === "in_progress") {
+    iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png";
   } else if (status === "Completed" || status === "resolved") {
     iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png";
   } else if (status === "Delayed") {
@@ -49,7 +49,7 @@ const getMarkerIcon = (status, priority = 1) => {
   
   return L.icon({
     iconUrl,
-    shadowUrl,
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
     iconSize: [size, size * 1.5],
     iconAnchor: [size/2, size * 1.5],
     popupAnchor: [1, -size * 0.75],
@@ -57,61 +57,44 @@ const getMarkerIcon = (status, priority = 1) => {
   });
 };
 
-// Function to extract coordinates from PostGIS POINT format
-const extractCoordinates = (location) => {
-  if (!location) return { lat: null, lng: null };
-  
-  // Handle PostGIS POINT format: "POINT(longitude latitude)"
-  if (typeof location === 'string') {
-    const match = location.match(/POINT\(([^ ]+) ([^ ]+)\)/);
-    if (match) {
-      return {
-        lng: parseFloat(match[1]),
-        lat: parseFloat(match[2])
-      };
-    }
-  }
-  
-  // Handle object format with coordinates array
-  if (location?.coordinates) {
-    return {
-      lng: parseFloat(location.coordinates[0]),
-      lat: parseFloat(location.coordinates[1])
-    };
-  }
-  
-  return { lat: null, lng: null };
-};
-
-export default function MapComponent({ issues = [], focusedLocation = null, height = "400px" }) {
+export default function MapComponent({ 
+  issues = [], 
+  focusedLocation = null, 
+  height = "400px",
+  onIssueClick 
+}) {
   // Default center (Kathmandu)
   const defaultCenter = [27.7172, 85.3240];
   
-  // Filter out issues with invalid coordinates
-  const validIssues = issues.filter(issue => {
-    const coords = extractCoordinates(issue.location);
-    return coords.lat && coords.lng && 
-           !isNaN(coords.lat) && !isNaN(coords.lng) &&
-           coords.lat !== 0 && coords.lng !== 0;
-  }).map(issue => {
-    const coords = extractCoordinates(issue.location);
-    return {
-      ...issue,
-      lat: coords.lat,
-      lng: coords.lng
-    };
+  // Log received issues
+  console.log("🗺️ MapComponent received:", {
+    issuesCount: issues.length,
+    focusedLocation,
+    issues: issues.map(i => ({ id: i.id, lat: i.lat, lng: i.lng }))
   });
 
-  // Determine center
+  // Filter issues with valid coordinates
+  const validIssues = issues.filter(issue => {
+    const hasValidCoords = issue.lat && issue.lng && 
+           !isNaN(issue.lat) && !isNaN(issue.lng) &&
+           issue.lat !== 0 && issue.lng !== 0;
+    
+    if (!hasValidCoords) {
+      console.warn("⚠️ Issue missing valid coordinates:", issue.id, issue.lat, issue.lng);
+    }
+    
+    return hasValidCoords;
+  });
+
+  console.log(`✅ Valid issues for map: ${validIssues.length}/${issues.length}`);
+
+  // Determine map center
   let center = defaultCenter;
   if (focusedLocation && focusedLocation.lat && focusedLocation.lng) {
     center = [focusedLocation.lat, focusedLocation.lng];
   } else if (validIssues.length > 0) {
-    // Center on the first valid issue
     center = [validIssues[0].lat, validIssues[0].lng];
   }
-
-  console.log(`🗺️ MapComponent: ${validIssues.length} valid issues out of ${issues.length} total`);
 
   return (
     <div className="map-component" style={{ height, width: "100%" }}>
@@ -126,19 +109,26 @@ export default function MapComponent({ issues = [], focusedLocation = null, heig
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* This handles the map movement when focusedLocation changes */}
         <MapController center={center} />
         
         {validIssues.map((issue) => {
           const position = [issue.lat, issue.lng];
           const status = issue.status || "Open";
-          const priority = issue.weight || issue.priority || 1;
+          const priority = issue.priority || issue.weight || 1;
           
           return (
             <Marker
               key={issue.id}
               position={position}
               icon={getMarkerIcon(status, priority)}
+              eventHandlers={{
+                click: () => {
+                  console.log("📍 Marker clicked:", issue.id);
+                  if (onIssueClick) {
+                    onIssueClick(issue);
+                  }
+                }
+              }}
             >
               <Popup>
                 <div className="map-popup">
@@ -146,16 +136,20 @@ export default function MapComponent({ issues = [], focusedLocation = null, heig
                   <p><strong>Status:</strong> {status}</p>
                   <p><strong>Priority:</strong> {priority}</p>
                   <p><strong>Description:</strong> {issue.description || "No description"}</p>
-                  {issue.vote_score !== undefined && (
-                    <p><strong>Votes:</strong> {issue.vote_score}</p>
+                  <p><strong>Location:</strong> {issue.lat.toFixed(6)}, {issue.lng.toFixed(6)}</p>
+                  {issue.votes !== undefined && (
+                    <p><strong>Votes:</strong> {issue.votes}</p>
                   )}
-                  {issue.ambulance_id && (
-                    <p><strong>Assigned to:</strong> 🚑 {issue.ambulance_id.substring(0, 6)}</p>
+                  {issue.assigned_to && (
+                    <p><strong>Assigned to:</strong> 🚑 {issue.assigned_to.substring(0, 6)}</p>
                   )}
                   {issue.photos?.length > 0 && (
                     <button 
                       className="popup-photo-btn"
-                      onClick={() => window.open(issue.photos[0], '_blank')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(issue.photos[0], '_blank');
+                      }}
                     >
                       📸 View Photo
                     </button>
@@ -165,6 +159,16 @@ export default function MapComponent({ issues = [], focusedLocation = null, heig
             </Marker>
           );
         })}
+        
+        {validIssues.length === 0 && (
+          <Popup position={defaultCenter}>
+            <div className="map-popup">
+              <h4>📍 Kathmandu</h4>
+              <p>Default location</p>
+              <p>No issues with valid coordinates found</p>
+            </div>
+          </Popup>
+        )}
       </MapContainer>
     </div>
   );

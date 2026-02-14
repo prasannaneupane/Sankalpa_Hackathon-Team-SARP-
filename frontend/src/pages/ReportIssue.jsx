@@ -1,7 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config";
 import "./ReportIssue.css";
+
+// Leaflet imports for map
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default marker icons in Leaflet with React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Component for handling map clicks and marker
+function LocationMarker({ position, setPosition, setLocation, setLatitude, setLongitude, setIsGettingLocation }) {
+  const map = useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+      setLatitude(lat);
+      setLongitude(lng);
+      
+      // Reverse geocoding to get address
+      setIsGettingLocation(true);
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        .then(res => res.json())
+        .then(data => {
+          setLocation(data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          setIsGettingLocation(false);
+        })
+        .catch(() => {
+          setLocation(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+          setIsGettingLocation(false);
+        });
+    },
+  });
+
+  return position === null ? null : (
+    <Marker position={position}>
+      <Popup>
+        Selected Location<br/>
+        Lat: {position[0].toFixed(6)}<br/>
+        Lng: {position[1].toFixed(6)}
+      </Popup>
+    </Marker>
+  );
+}
 
 export default function ReportIssue() {
   const navigate = useNavigate();
@@ -16,6 +64,12 @@ export default function ReportIssue() {
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationMode, setLocationMode] = useState("automatic"); // "automatic" or "manual"
+  
+  // Map states
+  const [mapPosition, setMapPosition] = useState(null);
+  const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default center (India)
+  const [showMap, setShowMap] = useState(false);
   
   // Duplicate detection states
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
@@ -32,8 +86,18 @@ export default function ReportIssue() {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
+  // Show map when manual mode is selected
+  useEffect(() => {
+    if (locationMode === "manual") {
+      setShowMap(true);
+    } else {
+      setShowMap(false);
+    }
+  }, [locationMode]);
+
   // Get current location
   const getCurrentLocation = () => {
+    setLocationMode("automatic");
     setIsGettingLocation(true);
     setError("");
     
@@ -45,26 +109,56 @@ export default function ReportIssue() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
         
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+        setLatitude(lat);
+        setLongitude(lng);
+        setMapPosition([lat, lng]);
+        setMapCenter([lat, lng]);
+        
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
           .then(res => res.json())
           .then(data => {
-            setLocation(data.display_name || `${position.coords.latitude}, ${position.coords.longitude}`);
+            const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            setLocation(address);
           })
           .catch(() => {
-            setLocation(`${position.coords.latitude}, ${position.coords.longitude}`);
+            setLocation(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
           });
         
         setIsGettingLocation(false);
         showSnackbar("📍 Location detected successfully!", "success");
       },
       (error) => {
-        setError("Could not get location. Please enable location services.");
+        setError("Could not get location. Please enable location services or use manual location.");
         setIsGettingLocation(false);
       }
     );
+  };
+
+  // Handle manual location selection
+  const handleManualLocationSelect = () => {
+    setLocationMode("manual");
+    setMapPosition(null);
+    setLatitude(null);
+    setLongitude(null);
+    setLocation("");
+  };
+
+  // Confirm location from map
+  const confirmMapLocation = () => {
+    if (mapPosition) {
+      setShowMap(false);
+      showSnackbar("📍 Location selected successfully!", "success");
+    } else {
+      showSnackbar("❌ Please click on the map to select a location", "error");
+    }
+  };
+
+  // Change location (back to map)
+  const handleChangeLocation = () => {
+    setShowMap(true);
   };
 
   // Handle image selection
@@ -120,7 +214,7 @@ export default function ReportIssue() {
     }
 
     if (!latitude || !longitude) {
-      showSnackbar("❌ Please detect your location first", "error");
+      showSnackbar("❌ Please select a location first", "error");
       return;
     }
 
@@ -138,6 +232,7 @@ export default function ReportIssue() {
       formData.append('lat', latitude);
       formData.append('lon', longitude);
       formData.append('description', description.trim());
+      formData.append('location_address', location || `${latitude}, ${longitude}`);
 
       // Check for nearby issues
       console.log("Checking for nearby issues at:", latitude, longitude);
@@ -234,8 +329,11 @@ export default function ReportIssue() {
     setDescription("");
     setLatitude(null);
     setLongitude(null);
+    setMapPosition(null);
     setNearbyIssue(null);
     setPendingFormData(null);
+    setLocationMode("automatic");
+    setShowMap(false);
   };
 
   const showSnackbar = (message, type = "success") => {
@@ -256,7 +354,7 @@ export default function ReportIssue() {
         <button className="back-button" onClick={() => navigate(-1)}>
           ← Back
         </button>
-        <h1 className="report-title">📢 Report a Road Issue</h1>
+        <h1 className="report-title"> Report a Road Issue</h1>
         <p className="report-subtitle">Help make our roads safer for everyone</p>
       </div>
 
@@ -267,35 +365,143 @@ export default function ReportIssue() {
           {/* Location Section */}
           <div className="form-section">
             <h3 className="section-heading">📍 Location</h3>
-            <div className="location-input-group">
+            
+            {/* Location Mode Toggle */}
+            <div className="location-mode-toggle">
               <button
                 type="button"
-                className={`location-button ${isGettingLocation ? 'loading' : ''}`}
+                className={`mode-button ${locationMode === "automatic" ? "active" : ""}`}
                 onClick={getCurrentLocation}
-                disabled={isGettingLocation}
               >
-                {isGettingLocation ? (
-                  <>📍 Detecting location...</>
-                ) : (
-                  <>📍 Detect My Location</>
-                )}
+                📍 Detect My Current Location
               </button>
-              
-              {latitude && longitude && (
-                <div className="location-coordinates">
-                  <span className="coordinate-badge">
-                    Lat: {latitude.toFixed(6)}
-                  </span>
-                  <span className="coordinate-badge">
-                    Lon: {longitude.toFixed(6)}
-                  </span>
-                </div>
-              )}
+              <button
+                type="button"
+                className={`mode-button ${locationMode === "manual" ? "active" : ""}`}
+                onClick={handleManualLocationSelect}
+              >
+                ✏️ Select on Map
+              </button>
             </div>
 
-            {location && (
-              <div className="location-address">
-                <strong>Address:</strong> {location}
+            {/* Automatic Location Detection */}
+            {locationMode === "automatic" && (
+              <div className="automatic-location">
+                {!latitude && (
+                  <button
+                    type="button"
+                    className={`location-button ${isGettingLocation ? 'loading' : ''}`}
+                    onClick={getCurrentLocation}
+                    disabled={isGettingLocation}
+                  >
+                    {isGettingLocation ? (
+                      <>📍 Detecting your location...</>
+                    ) : (
+                      <>📍 Tap to Detect Your Current Location</>
+                    )}
+                  </button>
+                )}
+                
+                {latitude && longitude && (
+                  <div className="selected-location-info">
+                    <div className="selected-coordinates">
+                      <span className="coord-pill">Lat: {latitude.toFixed(6)}</span>
+                      <span className="coord-pill">Lon: {longitude.toFixed(6)}</span>
+                    </div>
+                    {location && <p className="selected-address">{location}</p>}
+                    <button
+                      type="button"
+                      className="change-location-btn"
+                      onClick={getCurrentLocation}
+                    >
+                      📍 Detect Again
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Manual Location - Map Selection */}
+            {locationMode === "manual" && (
+              <div className="manual-location">
+                {showMap ? (
+                  <>
+                    <div className="map-container">
+                      <MapContainer
+                        center={mapCenter}
+                        zoom={5}
+                        style={{ height: '100%', width: '100%' }}
+                      >
+                        <TileLayer
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        />
+                        <LocationMarker 
+                          position={mapPosition}
+                          setPosition={setMapPosition}
+                          setLocation={setLocation}
+                          setLatitude={setLatitude}
+                          setLongitude={setLongitude}
+                          setIsGettingLocation={setIsGettingLocation}
+                        />
+                      </MapContainer>
+                      
+                      {isGettingLocation && (
+                        <div className="map-loading">
+                          <div className="spinner"></div>
+                          <span>Getting address...</span>
+                        </div>
+                      )}
+                      
+                      {mapPosition && (
+                        <div className="map-coordinates">
+                          <span>
+                            📍 Selected: {mapPosition[0].toFixed(6)}, {mapPosition[1].toFixed(6)}
+                          </span>
+                          <button
+                            type="button"
+                            className="confirm-location-btn"
+                            onClick={confirmMapLocation}
+                          >
+                            ✓ Confirm Location
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="input-hint">
+                      👆 Click anywhere on the map to select the exact location of the issue
+                    </p>
+                  </>
+                ) : (
+                  latitude && longitude && (
+                    <div className="selected-location-info">
+                      <div className="selected-coordinates">
+                        <span className="coord-pill">Lat: {latitude.toFixed(6)}</span>
+                        <span className="coord-pill">Lon: {longitude.toFixed(6)}</span>
+                      </div>
+                      {location && <p className="selected-address">{location}</p>}
+                      <button
+                        type="button"
+                        className="change-location-btn"
+                        onClick={handleChangeLocation}
+                      >
+                        🗺️ Change Location
+                      </button>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+
+            {/* Display coordinates if available */}
+            {latitude && longitude && locationMode !== "manual" && !showMap && (
+              <div className="location-coordinates">
+                <span className="coordinate-badge">
+                  Lat: {latitude.toFixed(6)}
+                </span>
+                <span className="coordinate-badge">
+                  Lon: {longitude.toFixed(6)}
+                </span>
               </div>
             )}
           </div>
@@ -309,6 +515,7 @@ export default function ReportIssue() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
+              maxLength={500}
               required
             />
             <span className="input-hint">{description.length}/500 characters</span>
@@ -396,7 +603,7 @@ export default function ReportIssue() {
               <div className="duplicate-issue-details">
                 <div className="detail-row">
                   <span className="detail-label">Issue ID:</span>
-                  <span className="detail-value">#{nearbyIssue.id.substring(0, 8)}</span>
+                  <span className="detail-value">#{nearbyIssue.id?.substring(0, 8) || 'N/A'}</span>
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">Description:</span>

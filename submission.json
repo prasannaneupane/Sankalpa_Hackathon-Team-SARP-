@@ -1,0 +1,65 @@
+{
+  "projectName": "Sadak Sudhar",
+  "tagline": "Real-time management of ambulances, road issues, and citizen reports for efficient resource allocation.",
+  "team": {
+    "name": "Team SARP",
+    "members": [
+      { "name": "Aayushya Shrestha", "role": "Frontend / UI", "email": "sthaayu333@gmail.com", "github": "https://github.com/Helllooowrld" },
+      { "name": "Prasanna Neupane", "role": "Backend / Database", "email": "neupaneprasanna85@gmail.com", "github": "https://github.com/prasannaneupane" },
+      { "name": "Rojan Neupane", "role": "Frontend / UX", "email": "rozen09@icloud.com", "github": "https://github.com/Ghost69699" },
+      { "name": "Sujal Shrestha", "role": "Backend / Product", "email": "sujalst10@gmail.com", "github": "https://github.com/Sujal-0731" }
+    ]
+  },
+  "problem": "Admins struggle with manual tracking of road issues and ambulance management, leading to inefficiency and delays.",
+  "solution": "A unified platform enabling admins to manage ambulances and road issues, with real-time data and citizen feedback for faster response.",
+  "targetUsers": "Admin personnel managing road issues and ambulance dispatch; citizens who report road-related problems.",
+  "techStack": {
+    "frontend": "React, CSS Modules, Context API",
+    "backend": "Node.js, Express, JWT Authentication",
+    "database": "Supabase (PostgreSQL)",
+    "infra": "Local development environment (localhost)",
+    "apisTools": ["Leaflet API for location services"]
+  },
+  "features": [
+    "Real-time dashboard with statistics on issues, ambulances, and citizens",
+    "Citizens can report issues by uploading photos and descriptions",
+    "Admins can manage and resolve issues, assign ambulances, and track progress"
+  ],
+"live": {
+  "url": "Not deployed (localhost only)",
+  "testCredentials": "N/A"
+}
+
+  "repositories": {
+    "monoRepo": "https://github.com/sankalpa-hackathon/TEAM-SARP",
+    "frontend": "https://github.com/sankalpa-hackathon/TEAM-SARP/tree/main/frontend",
+    "backend": "https://github.com/sankalpa-hackathon/TEAM-SARP/tree/main/backend"
+  },
+  "screenshots": [
+    "screenshots/About section.png",
+    "screenshots/Landing page.png",
+    "screenshots/Login page.pmg"
+  ],
+  "setup": {
+    "prerequisites": ["Node.js >= 16", "npm", "Supabase account (for database and auth)"],
+    "env": ["cp .env.example .env", "fill in SUPABASE_URL, SUPABASE_KEY, JWT_SECRET"],
+    "install": ["cd frontend && npm install", "cd backend && npm install"],
+    "run": ["npm run dev --prefix frontend", "npm run dev --prefix backend"]
+  },
+  "tests": [
+  "Manual testing on localhost (frontend UI + backend APIs)"
+]
+
+"metrics": {
+  "primary": "Feature completeness",
+  "current": "Core features implemented and working locally",
+  "target": "End-to-end workflow demonstration"
+}
+
+  "futureScope": [
+    "Mobile App: Extend functionality for mobile users",
+    "Advanced Analytics: Implement predictive analytics to forecast issue trends",
+    "Offline Mode: Allow for limited functionality even without internet access"
+  ],
+  "submittedAt": "2026-02-13 04:06AM"
+}

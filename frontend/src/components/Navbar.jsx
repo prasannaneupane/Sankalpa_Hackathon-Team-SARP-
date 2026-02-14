@@ -37,7 +37,7 @@ export default function Navbar({ loggedIn, toggleAbout }) {
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => goToPage(loggedIn ? "/citizen-dashboard" : "/")}>
         <img className="navbar-logo" src="../public/logo.png" alt="SADAK SUDHAR Logo" />
-        <h2 className="navbar-title">SADAK SUDHAR</h2>
+        <h2 className="navbar-title">Sadak Sudhar</h2>
       </div>
 
       <div className="navbar-links">

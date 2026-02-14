@@ -107,7 +107,7 @@ export default function Home() {
       <div className="hero">
         <div className="hero-overlay"></div>
         <div className="hero-content">
-          <img className="hero-logo" src="../public/logo.png" alt="SADAK SUDHAR Logo" />
+          <img className="hero-logo" src="/logo.png" alt="SADAK SUDHAR Logo" />
           <h1 className="hero-title">SADAK SUDHAR</h1>
           <p className="hero-subtitle">
             Report, track, and resolve road issues in your community
