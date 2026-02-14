@@ -10,7 +10,7 @@
 .hero {
   position: relative;
   height: 500px;
-  background-image: url('../../assets/pics_for_bg.jpg');
+  background-image: url('../assets/pics_for_bg.png');
   background-size: cover;
   background-position: center;
   display: flex;
