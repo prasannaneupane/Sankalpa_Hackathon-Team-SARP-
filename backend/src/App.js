@@ -4,7 +4,7 @@ const cors = require('cors');
 
 // ✅ ADD CORS MIDDLEWARE HERE - BEFORE OTHER MIDDLEWARE AND ROUTES
 app.use(cors({
-  origin: 'http://localhost:5173', // Your frontend URL
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://frontend'], // Your frontend URLs
   credentials: true,
   optionsSuccessStatus: 200
 }));

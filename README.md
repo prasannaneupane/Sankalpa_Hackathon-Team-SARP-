@@ -1,140 +1,371 @@
-# Sadak Sudhar
+﻿# SARP - Smart Ambulance & Road Problem Management System
 
-## What It Does
-A web-based dashboard for admins to manage ambulances, citizens, and road issues with real-time insights.
+> A comprehensive web-based platform for managing ambulances, citizens, and road issues with real-time insights and efficient coordination.
 
-## Proof Points
-- **Efficiency**: Reduces admin workload by 50% through automated issue tracking and ambulance management.
-- **Scalability**: Supports 100+ concurrent users with optimized API calls and responsive design.
+---
 
-## Team
-**Team Name**: Team SARP
+## 🎯 Overview
 
-| Name              | Role / Ownership     | Contact                |
-|-------------------|----------------------|------------------------|
-| Aayushya Shrestha | Frontend / UI        | sthaayu333@gmail.com    |
-| Prasanna Neupane  | Backend / Database   | neupaneprasanna85@gmail.com |
-| Rojan Neupane     | Frontend / UX        | rozen09@icloud.com     |
-| Sujal Shrestha    | Backend / Product    | sujalst10@gmail.com     |
+SARP is an admin dashboard that enables real-time management of ambulances, citizens, and road issues. It helps streamline administrative tasks, providing an intuitive interface to track and resolve issues efficiently.
 
-## Problem & Users
-- **Primary User**: Admins managing ambulances, road issues, and citizen reports.
-- **Top Pain Point**: Inefficient manual processes for tracking issues and managing ambulance assignments.
+### Key Benefits
+- **50% Efficiency Gain**: Reduces admin workload through automated issue tracking and ambulance management
+- **High Scalability**: Supports 100+ concurrent users with optimized API calls
+- **30% Faster Response**: Real-time updates reduce emergency response delays
+- **User-Friendly Interface**: Intuitive design that simplifies complex workflows
 
-### Why Existing Workarounds Are Bad:
-- **Time Lost**: Manual tracking wastes 2+ hours per day for each admin.
-- **Errors**: High risk of mismanagement due to lack of real-time data and notifications.
-- **Success If Solved**: Saves 2 hours/day per admin and improves ambulance response time by 30%.
+---
 
-## Solution
+## 👥 Team SARP
 
-### Description
-Sadak Sudhar is a web-based admin dashboard that enables real-time management of ambulances, citizens, and road issues. It helps streamline tasks, providing an intuitive interface to track and resolve issues efficiently.
+| Name              | Role           | Email                           |
+|-------------------|----------------|---------------------------------|
+| Aayushya Shrestha | Frontend / UI  | sthaayu333@gmail.com            |
+| Prasanna Neupane  | Backend / DB   | neupaneprasanna85@gmail.com     |
+| Rojan Neupane     | Frontend / UX  | rozen09@icloud.com              |
+| Sujal Shrestha    | Backend / PM   | sujalst10@gmail.com             |
 
-### User Flow
-1. **Admin Login**: Admin securely logs in to access the platform.
-2. **Dashboard Overview**: Views real-time stats on issues, ambulances, and citizen reports.
-3. **Issue Management**: Filters, updates, and exports issues; assigns ambulances to critical cases.
-4. **Ambulance Management**: Registers new ambulances, toggles availability, and monitors performance.
-5. **Citizen Monitoring**: Tracks and responds to citizen reports and feedback.
-6. **Real-Time Updates**: Resolves issues and monitors ambulance locations via the integrated map interface.
-7. **Logout**: Ends the session securely.
+---
 
-## Key Features
-- **Dashboard Stats**: Displays real-time stats on road issues, ambulances, and citizens.
-- **Issue Management**: Quickly filter, search, and export issues to CSV for detailed reports.
-- **Ambulance Registration**: Easy creation and management of ambulance accounts with all necessary details.
-
-## Why It's Better
-- **Faster**: Real-time updates reduce delays by 30%.
-- **Easier**: An intuitive UI simplifies admin workflows and reduces complexity.
-- **Limitations**: Requires a stable internet connection for real-time updates to function properly.
-
-### Test Credentials:
-- **Admin**: admin@sarp.com
-- **Password**: admin123
-
-
-### Data Notes:
-- **Stored**: User info, issues, ambulance data.
-- **Retention**: Data is stored for 1 year.
-
-## Tech Stack
-- **Frontend**: React, CSS Modules, Context API
-- **Backend**: Node.js, Express, JWT Authentication
-- **Database**: Supabase (PostgreSQL)
-- **APIs**: Leaflet API for location services.
-
-## Data, Privacy, Security
-- **PII Handling**: Personal data is securely stored in Supabase (PostgreSQL) and encrypted in transit and at rest.
-- **Secrets Management**: Managed through environment variables in `.env` files.
-- **Authorization**: Role-based access control (RBAC) is implemented using Supabase's built-in authentication and policies.
-- **Logging**: Supabase automatically logs database queries and admin actions for auditing purposes.
-
-## Setup
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js v16+
-- Supabase
-- npm
+- **Docker** & **Docker Compose**
+- **Node.js** v16+ (if running locally)
+- **npm** or **yarn**
 
-### Setup Instructions
+### Using Docker (Recommended)
 
-1. **Copy Environment Variables**:  
-   Copy the `.env.example` file to `.env` and fill in the required keys (e.g., `SUPABASE_URL`, `SUPABASE_KEY`).
+```bash
+# Start all services
+docker-compose up
 
-2. **Install Dependencies**:
-   - **Frontend**:  
-     ```bash
-     cd frontend && npm install
-     ```
-   - **Backend**:  
-     ```bash
-     cd backend && npm install
-     ```
+# Services will be available at:
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:5001
+```
 
-3. **Run the App**:
-   - **Frontend**:
-     ```bash
-     npm run dev --prefix frontend
-     ```
-   - **Backend**:
-     ```bash
-     npm run dev --prefix backend
-     ```
+### Running Locally (Without Docker)
 
-4. **Seed Data (if applicable)**:  
-   Supabase handles database initialization automatically, so no manual seeding is required unless specified.
+**Backend:**
+```bash
+cd backend
+npm install
+npm start
+```
 
-5. **App URL**:  
-   Access the app locally at:  
-   [http://localhost:5173](http://localhost:5173)
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## Usage Walkthrough
+Access the application at `http://localhost:3000`
 
-1. **Log in** as an admin using the provided test credentials.  
-2. **View** the real-time dashboard stats, including issues, ambulances, and citizen reports.  
-3. **Register** a new ambulance and assign it to an area.  
-4. **Filter** and **export** issues to CSV for detailed analysis.  
-5. **Toggle** ambulance status to reflect operational updates.  
-6. **Resolve** road issues in real-time using the map-based interface.
-7. **Citizens** can log in, upload photos to report issues through the citizen dashboard.
+### Test Credentials
+```
+Email:    admin@example.com
+Password: password123
+```
 
-## Future Scope
-- **Mobile App**: Extend functionality for mobile users.
-- **Advanced Analytics**: Implement predictive analytics to forecast issue trends.
-- **Offline Mode**: Allow for limited functionality even without internet access.
+---
 
-## Timeline (Hackathon Log)
-- **Day 1**: Problem validation and initial setup.
-- **Day 2**: Prototype development.
-- **Day 3**: Final polish and deployment.
+## 💡 Problem Statement
 
-## Submission Checklist
-- [x] README Completed
-- [x] Screenshots Added
-- [x] `submission.json` Filled
+### Pain Points
+- **Time Lost**: Manual tracking wastes 2+ hours per day per admin
+- **Errors**: High risk of mismanagement due to lack of real-time data
+- **Inefficiency**: Disconnected processes for issue and ambulance management
 
-## Credits & License
-- **Attributions**: Leaflet Maps API, Open Source Libraries.
-- **License**: MIT License.
+### Solution Impact
+- ✅ Saves 2 hours/day per admin
+- ✅ Improves ambulance response time by 30%
+- ✅ Centralizes issue and resource management
+
+---
+
+## ✨ Key Features
+
+### 📊 Dashboard & Analytics
+- Real-time statistics on road issues, ambulances, and citizens
+- Customizable widgets and data visualization
+- Export reports to CSV for analysis
+
+### 🚑 Ambulance Management
+- Easy registration and setup of ambulance accounts
+- Toggle ambulance availability status
+- Performance monitoring and tracking
+- Real-time location tracking via integrated maps
+
+### 🛣️ Issue Management
+- Quick filtering and search functionality
+- Bulk issue operations and bulk updates
+- Assign ambulances to critical cases
+- Track issue status from report to resolution
+- Integrated map-based interface for spatial awareness
+
+### 📱 Citizen Management
+- Citizen report tracking and feedback system
+- Photo upload support for issue documentation
+- Citizen notification on issue updates
+- Role-based access control
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     USER BROWSER                             │
+│                   (Frontend - React)                         │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                    HTTP/HTTPS (Port 3000)
+                           │
+        ┌──────────────────┴──────────────────┐
+        │                                      │
+   ┌────▼────────────┐              ┌────────▼───────────┐
+   │  NGINX Server   │              │  Express API       │
+   │  (Static Files) │              │  (Backend - Port   │
+   └────────────────┘               │   5000/5001)       │
+                                    └────────┬───────────┘
+                                             │
+                                    PostgreSQL/Supabase
+                                      (Database Layer)
+                                             │
+                                    ┌────────▼──────────┐
+                                    │  Supabase         │
+                                    │  - Authentication │
+                                    │  - Database       │
+                                    │  - Real-time Sync │
+                                    └───────────────────┘
+```
+
+### Tech Stack
+
+**Frontend:**
+- React 18+ with Context API for state management
+- CSS Modules for styling
+- Leaflet.js for map functionality
+- Vite as build tool
+
+**Backend:**
+- Node.js with Express.js framework
+- JWT authentication
+- Express middleware for CORS, validation, and error handling
+- RESTful API architecture
+
+**Database & Auth:**
+- Supabase (PostgreSQL)
+- Built-in authentication and authorization
+- Real-time database subscriptions
+- Row-level security (RLS) policies
+
+**DevOps:**
+- Docker & Docker Compose for containerization
+- Multi-stage builds for optimized images
+- Environment-based configuration
+
+---
+
+## 📋 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Admin login
+- `POST /api/auth/logout` - Logout
+
+### Issues
+- `GET /api/issues` - List all issues
+- `POST /api/issues` - Create new issue
+- `PUT /api/issues/:id` - Update issue
+- `DELETE /api/issues/:id` - Delete issue
+
+### Ambulances
+- `GET /api/ambulance` - List ambulances
+- `POST /api/ambulance` - Register ambulance
+- `PUT /api/ambulance/:id` - Update ambulance status
+
+### Admin Operations
+- `GET /api/admin/stats` - Get dashboard statistics
+- `GET /api/admin/reports` - Get reports
+- `POST /api/admin/export` - Export data
+
+### Feedback
+- `GET /api/feedback` - Get feedback
+- `POST /api/feedback` - Submit feedback
+
+---
+
+## 🔐 Security & Privacy
+
+### Data Protection
+- **Encryption**: Data encrypted in transit (HTTPS) and at rest (Supabase)
+- **PII Handling**: Personal data securely stored in PostgreSQL
+- **Secrets Management**: Environment variables for sensitive configuration
+
+### Access Control
+- **Authentication**: JWT-based user authentication
+- **Authorization**: Role-based access control (RBAC)
+- **Audit Logging**: All admin actions logged for compliance
+
+---
+
+## 📂 Project Structure
+
+```
+TEAM-SARP/
+├── backend/                    # Express.js API server
+│   ├── src/
+│   │   ├── controllers/       # Request handlers
+│   │   ├── services/          # Business logic
+│   │   ├── routes/            # API routes
+│   │   ├── middleware/        # Custom middleware
+│   │   ├── config/            # Configuration files
+│   │   └── app.js             # Express app setup
+│   ├── Dockerfile
+│   └── package.json
+│
+├── frontend/                   # React application
+│   ├── src/
+│   │   ├── components/        # Reusable components
+│   │   ├── pages/             # Page components
+│   │   ├── services/          # API service layer
+│   │   ├── assets/            # Static assets
+│   │   ├── utils/             # Utility functions
+│   │   └── main.jsx           # Entry point
+│   ├── Dockerfile
+│   ├── nginx.conf             # Nginx configuration
+│   └── package.json
+│
+├── docker-compose.yml         # Multi-container orchestration
+├── docs/                       # Documentation
+│   ├── architecture.md
+│   └── features.md
+└── README.md
+```
+
+---
+
+## 📦 Environment Configuration
+
+### Backend `.env`
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+PORT=5000
+NODE_ENV=development
+```
+
+### Get Credentials
+1. Create account at [supabase.com](https://supabase.com)
+2. Create new project
+3. Go to Settings → API
+4. Copy Project URL and Service Role Key
+
+---
+
+## 🎯 User Flows
+
+### Admin User Flow
+1. **Login** → 2. **Dashboard Overview** → 3. **Issue Management** → 4. **Ambulance Assignment** → 5. **Real-time Monitoring** → 6. **Generate Reports** → 7. **Logout**
+
+### Citizen User Flow
+1. **Register/Login** → 2. **Report Issue** → 3. **Upload Photo** → 4. **Track Status** → 5. **Provide Feedback**
+
+---
+
+## 🚀 Magic Moment
+
+The first time an admin resolves a road issue in real-time using the map-based interface, seeing ambulances mobilize and the issue move from "reported" to "resolved" in real-time.
+
+---
+
+## 🔄 Docker Compose Details
+
+### Services
+- **Backend**: Node.js Express API (Port 5000 → 5001)
+- **Frontend**: Nginx web server (Port 80 → 3000)
+
+### Network
+- **Bridge Network**: `team-sarp-network` for inter-service communication
+
+### Useful Commands
+```bash
+# Start services
+docker-compose up
+
+# Start in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Rebuild images
+docker-compose up --build
+
+# Stop services
+docker-compose down
+
+# Remove all data
+docker-compose down -v
+```
+
+---
+
+## 📈 Future Enhancements
+
+- [ ] **Mobile App**: Native iOS/Android application
+- [ ] **Advanced Analytics**: Predictive analytics for issue trends
+- [ ] **Citizen Portal**: Direct issue reporting from citizens
+- [ ] **Multilingual Support**: Support for multiple languages
+- [ ] **Offline Mode**: Limited functionality without internet
+- [ ] **SMS Notifications**: Real-time SMS alerts
+- [ ] **Integration APIs**: Third-party service integrations
+- [ ] **Advanced Mapping**: 3D maps and route optimization
+
+---
+
+## 📊 Development Timeline
+
+| Phase | Duration | Deliverables |
+|-------|----------|--------------|
+| Day 1 | Setup & Planning | Problem validation, architecture design, project setup |
+| Day 2 | Development | API development, frontend components, integration |
+| Day 3 | Polish & Deploy | Bug fixes, documentation, Docker setup, deployment |
+
+---
+
+## ✅ Deployment Checklist
+
+- [x] Backend API implemented
+- [x] Frontend UI completed
+- [x] Database configured
+- [x] Docker setup complete
+- [x] Documentation written
+- [x] Test credentials provided
+- [x] Security measures implemented
+- [x] README completed
+
+---
+
+## 📝 License & Credits
+
+**License**: MIT License
+
+**Attributions**:
+- [Leaflet](https://leafletjs.com/) - Map library
+- [Supabase](https://supabase.com/) - Backend-as-a-Service
+- [React](https://react.dev/) - UI framework
+- [Express.js](https://expressjs.com/) - Web framework
+
+---
+
+## 🤝 Support & Contributions
+
+For issues, questions, or contributions, please contact the team members listed above.
+
+---
+
+**Last Updated**: May 16, 2026
