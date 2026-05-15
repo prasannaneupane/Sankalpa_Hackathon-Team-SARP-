@@ -10,7 +10,7 @@
 .hero {
   position: relative;
   height: 500px;
-  background-image: url('/Users/prasanna/Codes/SARP-hackathon/TEAM-SARP/frontend/public/bg.png'); 
+  background-image: url('/bg.png'); 
   background-size: cover;
   background-position: center;
   display: flex;
