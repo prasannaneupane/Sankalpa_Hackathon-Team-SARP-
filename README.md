@@ -2,6 +2,10 @@
 
 > A comprehensive web-based platform for managing ambulances, citizens, and road issues with real-time insights and efficient coordination.
 
+## 📌 Project Status
+
+This is a **personal learning project** based on the original SARP hackathon submission by Team SARP. The project has been **refactored and dockerized** for modern deployment practices and serves as a reference implementation for containerized full-stack applications.
+
 ---
 
 ## 🎯 Overview
